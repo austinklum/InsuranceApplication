@@ -5,7 +5,12 @@
 }
 
 <h1>Policies</h1>
-
+<form asp-controller="Policies" asp-action="Index" method="get">
+    <p>
+        Search: <input type="text" name="SearchString" />
+        <input type="submit" value="Filter" />
+    </p>
+</form>
 <table class="table">
     <thead>
         <tr>
@@ -52,7 +57,7 @@
                 @Html.DisplayFor(modelItem => item.Premium)
             </td>
             <td>
-                <a asp-action="Details" asp-route-id="@item.Id">Drugs</a>
+                <a asp-action="Details" asp-route-id="@item.Id">Details & Drugs</a>
             </td>
         </tr>
 }

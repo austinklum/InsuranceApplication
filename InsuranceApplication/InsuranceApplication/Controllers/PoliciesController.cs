@@ -20,9 +20,14 @@ namespace InsuranceApplication.Views.Policies
         }
 
         // GET: Policies
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            return View(await _context.Policies.ToListAsync());
+            var policies = from p in _context.Policies select p;
+            if(!string.IsNullOrEmpty(searchString))
+            {
+                policies = policies.Where(s => s.Name.Contains(searchString) || s.PolicyCode.Contains(searchString));
+            }
+            return View(await policies.ToListAsync());
         }
 
         // GET: Policies/Details/5
@@ -48,5 +53,7 @@ namespace InsuranceApplication.Views.Policies
         {
             return _context.Policies.Any(e => e.Id == id);
         }
+
+
     }
 }
