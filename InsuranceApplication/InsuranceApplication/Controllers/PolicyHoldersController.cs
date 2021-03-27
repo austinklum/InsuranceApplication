@@ -20,9 +20,14 @@ namespace InsuranceApplication.Views.PolicyHolders
         }
 
         // GET: PolicyHolders
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            return View(await _context.PolicyHolders.ToListAsync());
+            var holders = from p in _context.PolicyHolders select p;
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                holders = holders.Where(s => s.Name.Contains(searchString) || s.PolicyCode.Contains(searchString));
+            }
+            return View(await holders.ToListAsync());
         }
 
         // GET: PolicyHolders/Details/5
