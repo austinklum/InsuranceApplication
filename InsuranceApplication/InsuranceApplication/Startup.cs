@@ -28,6 +28,7 @@ namespace InsuranceApplication
         {
             services.AddControllersWithViews();
             services.AddDbContext<UserContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
+            services.AddDbContext<PolicyContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
 
             services.AddMvc();
             services.AddDistributedMemoryCache();
