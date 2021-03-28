@@ -33,6 +33,7 @@ namespace InsuranceApplication
             services.AddDbContext<DrugContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
             services.AddDbContext<AgentContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
             services.AddDbContext<TransactionContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
+            services.AddDbContext<PolicyDrugContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DBContext")));
 
             services.AddMvc();
             services.AddDistributedMemoryCache();
