@@ -28,5 +28,8 @@ namespace InsuranceApplication.Models
         [NotMapped]
         [DisplayName("Total Cost of Transaction")]
         public double TotalCost { get; set; }
+        [NotMapped]
+        [DisplayName("Total Cost without Insurance")]
+        public double TotalCostNoIns { get; set; }
     }
 }

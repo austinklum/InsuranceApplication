@@ -83,6 +83,7 @@ namespace InsuranceApplication.Views.PTransactions
             Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
             transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
+            transaction.TotalCostNoIns = Math.Round(drug.CostPer * transaction.Count,2);
             TransactionDetailsViewModel vm = new TransactionDetailsViewModel(transaction, drug);
 
             return View(vm);
