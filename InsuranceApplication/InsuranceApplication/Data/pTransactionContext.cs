@@ -4,16 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace InsuranceApplication.Data
 {
-    public class PolicyDrugContext : DbContext
+    public class PTransactionContext : DbContext
     {
-        public PolicyDrugContext(DbContextOptions<PolicyDrugContext> options) : base(options)
+        public PTransactionContext(DbContextOptions<PTransactionContext> options) : base(options)
         {
 
         }
 
-        public DbSet<PolicyDrug> PolicyDrugs { get; set; }
+        public DbSet<PTransaction> PTransactions { get; set; }
     }
 }
