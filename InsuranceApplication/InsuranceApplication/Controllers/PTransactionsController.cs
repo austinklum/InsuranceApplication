@@ -14,11 +14,15 @@ namespace InsuranceApplication.Views.PTransactions
     {
         private readonly PTransactionContext _pTransactionContext;
         private readonly PolicyHolderContext _policyHolderContext;
+        private readonly PolicyContext _policyContext;
+        private readonly DrugContext _drugContext;
 
-        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext)
+        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext, PolicyContext policyContext, DrugContext drugContext)
         {
             _pTransactionContext = pTransactionContext;
             _policyHolderContext = policyHolderContext;
+            _policyContext = policyContext;
+            _drugContext = drugContext;
         }
 
         // GET: PTransactions
@@ -46,7 +50,8 @@ namespace InsuranceApplication.Views.PTransactions
 
             foreach(PTransaction transaction in transactions)
             {
-                transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.Id).Name;
+                transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.HolderId).Name;
+                transaction.DrugName = _drugContext.Drugs.First(d => d.Code == transaction.DrugCode).MedicalName;
             }
 
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
@@ -88,14 +93,35 @@ namespace InsuranceApplication.Views.PTransactions
                 return NotFound();
             }
 
-            var pTransaction = await _pTransactionContext.PTransactions
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (pTransaction == null)
+            PTransaction transaction = await _pTransactionContext.PTransactions
+                .FirstAsync(m => m.Id == id);
+            if (transaction == null)
             {
                 return NotFound();
             }
+            transaction.Accepted = true;
 
-            return View(pTransaction);
+            Drug drug = await _drugContext.Drugs
+                .FirstAsync(d => d.Code == transaction.DrugCode);
+
+            PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders
+                .FirstAsync(p => p.Id == transaction.HolderId);
+
+            Policy policy = await _policyContext.Policies
+                .FirstAsync(p => p.Id == policyHolder.Id);
+
+            transaction.AmountPaid = Math.Round(drug.CostPer * policy.PercentCoverage,2);
+            policyHolder.AmountPaid += transaction.AmountPaid;
+            policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
+
+            _policyHolderContext.PolicyHolders.Update(policyHolder);
+            _policyHolderContext.SaveChanges();
+            _pTransactionContext.PTransactions.Update(transaction);
+            _pTransactionContext.SaveChanges();
+
+            // Send response to pharmacy
+
+            return RedirectToAction("Index");
         }
     }
 }
