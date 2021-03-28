@@ -67,6 +67,9 @@
             <td>
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a>
             </td>
+            <td>
+                <a asp-action="Accept" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Accept</a>
+            </td>
         </tr>
 }
     </tbody>

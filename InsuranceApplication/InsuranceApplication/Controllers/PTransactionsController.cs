@@ -80,9 +80,22 @@ namespace InsuranceApplication.Views.PTransactions
             return _pTransactionContext.PTransactions.Any(e => e.Id == id);
         }
 
-        public string GetNameFromUserID(int id)
+        // GET: PTransactions/Details/5
+        public async Task<IActionResult> Accept(int? id)
         {
-            return _policyHolderContext.PolicyHolders.FirstOrDefault(h => h.Id == id).Name;
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var pTransaction = await _pTransactionContext.PTransactions
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (pTransaction == null)
+            {
+                return NotFound();
+            }
+
+            return View(pTransaction);
         }
     }
 }
