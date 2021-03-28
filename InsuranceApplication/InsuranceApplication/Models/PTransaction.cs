@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace InsuranceApplication.Models
 {
-    public class Transaction
+    public class PTransaction
     {
         public int Id { get; set; }
         public string DrugName { get; set; }
