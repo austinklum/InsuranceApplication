@@ -24,7 +24,7 @@ namespace InsuranceApplication.Models
         [NotMapped]
         [DisplayName("Policyholder Name")]
         public string HolderName { get; set; }
-        public bool Accepted { get; set; }
+        public bool? Accepted { get; set; }
         [NotMapped]
         [DisplayName("Total Cost of Transaction")]
         public double TotalCost { get; set; }

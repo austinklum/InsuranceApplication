@@ -27,14 +27,14 @@ namespace InsuranceApplication.Views.PTransactions
         }
 
         // GET: PTransactions
-        public async Task<IActionResult> Index(string holderName, bool includeAccepted)
+        public async Task<IActionResult> Index(string holderName, bool includeProcessed)
         {
 
             IQueryable<PTransaction> transactions = from p in _pTransactionContext.PTransactions select p;
 
-            if(!includeAccepted)
+            if(!includeProcessed)
             {
-                transactions = transactions.Where(t => !t.Accepted);
+                transactions = transactions.Where(t => t.Accepted == null);
             }
 
             if (!string.IsNullOrEmpty(holderName))
@@ -69,7 +69,7 @@ namespace InsuranceApplication.Views.PTransactions
             {
                 HttpContext.Session.SetString("holderName", "");
             }
-            HttpContext.Session.SetString("includeAccepted", includeAccepted.ToString());
+            HttpContext.Session.SetString("includeProcessed", includeProcessed.ToString());
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
@@ -99,7 +99,7 @@ namespace InsuranceApplication.Views.PTransactions
         }
 
         // GET: PTransactions/Details/5
-        public async Task<IActionResult> Accept(int? id)
+        public async Task<IActionResult> Process(int? id)
         {
             if (id == null)
             {
@@ -128,14 +128,15 @@ namespace InsuranceApplication.Views.PTransactions
             _pTransactionContext.SaveChanges();
 
             // Send response to pharmacy
+
             string holderName = "";
             if(policyHolder.Name == HttpContext.Session.GetString("holderName"))
             {
                 holderName = policyHolder.Name;
             }
-            bool includeAccepted = bool.Parse(HttpContext.Session.GetString("includeAccepted"));
+            bool includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
 
-            return RedirectToAction("Index", new { holderName = holderName, includeAccepted = includeAccepted });
+            return RedirectToAction("Index", new { holderName = holderName, includeProcessed = includeProcessed });
         }
 
         private double getTotalCost(Drug d, Policy p, PolicyHolder h, PTransaction t)
