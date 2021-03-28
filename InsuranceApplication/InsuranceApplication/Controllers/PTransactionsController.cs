@@ -20,9 +20,28 @@ namespace InsuranceApplication.Views.PTransactions
         }
 
         // GET: PTransactions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int holderId, bool includeAccepted)
         {
-            return View(await _context.PTransactions.ToListAsync());
+            IQueryable<int> holderQuery = from p in _context.PTransactions orderby p.HolderId select p.HolderId;
+
+            var transactions = from p in _context.PTransactions select p;
+
+            if(!includeAccepted)
+            {
+                transactions = transactions.Where(t => !t.Accepted);
+            }
+
+            if (holderId != 0)
+            {
+                transactions = transactions.Where(t => t.HolderId == holderId);
+            }
+
+            PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
+            {
+                Holders = new SelectList(await holderQuery.Distinct().ToListAsync()),
+                Transactions = await transactions.ToListAsync()
+            };
+            return View(TransactionByPH);
         }
 
         // GET: PTransactions/Details/5
