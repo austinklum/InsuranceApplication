@@ -12,5 +12,6 @@ namespace InsuranceApplication.Models
         public DateTime Date { get; set; }
         public double AmountPaid { get; set; }
         public int HolderId { get; set; }
+        public bool Accepted { get; set; }
     }
 }
