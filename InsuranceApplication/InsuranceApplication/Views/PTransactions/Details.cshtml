@@ -1,4 +1,4 @@
-﻿@model InsuranceApplication.Models.PTransaction
+﻿@model InsuranceApplication.Models.TransactionDetailsViewModel
 
 @{
     ViewData["Title"] = "Details";
@@ -10,29 +10,41 @@
     <h4>PTransaction</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DrugName)
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.drug.Code)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DrugName)
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.drug.Code)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Date)
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.drug.MedicalName)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Date)
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.drug.MedicalName)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AmountPaid)
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.drug.CommercialName)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AmountPaid)
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.drug.CommercialName)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HolderId)
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.drug.CostPer)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HolderId)
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.drug.CostPer)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.transaction.Count)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.transaction.Count)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.transaction.TotalCost)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.transaction.TotalCost)
         </dd>
     </dl>
 </div>
