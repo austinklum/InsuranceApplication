@@ -14,11 +14,15 @@ namespace InsuranceApplication.Views.PTransactions
     {
         private readonly PTransactionContext _pTransactionContext;
         private readonly PolicyHolderContext _policyHolderContext;
+        private readonly PolicyContext _policyContext;
+        private readonly DrugContext _drugContext;
 
-        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext)
+        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext, PolicyContext policyContext, DrugContext drugContext)
         {
             _pTransactionContext = pTransactionContext;
             _policyHolderContext = policyHolderContext;
+            _policyContext = policyContext;
+            _drugContext = drugContext;
         }
 
         // GET: PTransactions
@@ -44,9 +48,17 @@ namespace InsuranceApplication.Views.PTransactions
 
             IQueryable<string> holderNames = holders.Select(h => h.Name);
 
-            foreach(PTransaction transaction in transactions)
+
+            foreach (PTransaction transaction in transactions)
             {
-                transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.Id).Name;
+                Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
+                PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
+                Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
+
+                transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.HolderId).Name;
+                transaction.DrugName = _drugContext.Drugs.First(d => d.Code == transaction.DrugCode).MedicalName;
+                transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
+
             }
 
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
@@ -65,24 +77,55 @@ namespace InsuranceApplication.Views.PTransactions
                 return NotFound();
             }
 
-            var pTransaction = await _pTransactionContext.PTransactions
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (pTransaction == null)
+            PTransaction transaction = await _pTransactionContext.PTransactions.FirstAsync(m => m.Id == id);
+            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
+            PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
+            Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
+
+            transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
+            transaction.TotalCostNoIns = Math.Round(drug.CostPer * transaction.Count,2);
+            TransactionDetailsViewModel vm = new TransactionDetailsViewModel(transaction, drug);
+
+            return View(vm);
+        }
+
+        // GET: PTransactions/Details/5
+        public async Task<IActionResult> Accept(int? id)
+        {
+            if (id == null)
             {
                 return NotFound();
             }
 
-            return View(pTransaction);
+            PTransaction transaction = await _pTransactionContext.PTransactions.FirstAsync(m => m.Id == id);
+            transaction.Accepted = true;
+
+            Drug drug = await _drugContext.Drugs
+                .FirstAsync(d => d.Code == transaction.DrugCode);
+
+            PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders
+                .FirstAsync(p => p.Id == transaction.HolderId);
+
+            Policy policy = await _policyContext.Policies
+                .FirstAsync(p => p.Id == policyHolder.Id);
+
+            transaction.AmountPaid = getTotalCost(drug, policy, policyHolder, transaction);
+            policyHolder.AmountPaid += transaction.AmountPaid;
+            policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
+
+            _policyHolderContext.PolicyHolders.Update(policyHolder);
+            _policyHolderContext.SaveChanges();
+            _pTransactionContext.PTransactions.Update(transaction);
+            _pTransactionContext.SaveChanges();
+
+            // Send response to pharmacy
+
+            return RedirectToAction("Index");
         }
 
-        private bool PTransactionExists(int id)
+        private double getTotalCost(Drug d, Policy p, PolicyHolder h, PTransaction t)
         {
-            return _pTransactionContext.PTransactions.Any(e => e.Id == id);
-        }
-
-        public string GetNameFromUserID(int id)
-        {
-            return _policyHolderContext.PolicyHolders.FirstOrDefault(h => h.Id == id).Name;
+            return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * t.Count * p.PercentCoverage, 2));
         }
     }
 }
