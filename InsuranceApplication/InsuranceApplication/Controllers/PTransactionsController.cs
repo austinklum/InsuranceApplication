@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using InsuranceApplication.Data;
 using InsuranceApplication.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace InsuranceApplication.Views.PTransactions
 {
@@ -60,7 +61,15 @@ namespace InsuranceApplication.Views.PTransactions
                 transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
 
             }
-
+            if(!string.IsNullOrEmpty(holderName))
+            {
+                HttpContext.Session.SetString("holderName", holderName);
+            }
+            else
+            {
+                HttpContext.Session.SetString("holderName", "");
+            }
+            HttpContext.Session.SetString("includeAccepted", includeAccepted.ToString());
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
@@ -119,8 +128,14 @@ namespace InsuranceApplication.Views.PTransactions
             _pTransactionContext.SaveChanges();
 
             // Send response to pharmacy
+            string holderName = "";
+            if(policyHolder.Name == HttpContext.Session.GetString("holderName"))
+            {
+                holderName = policyHolder.Name;
+            }
+            bool includeAccepted = bool.Parse(HttpContext.Session.GetString("includeAccepted"));
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { holderName = holderName, includeAccepted = includeAccepted });
         }
 
         private double getTotalCost(Drug d, Policy p, PolicyHolder h, PTransaction t)

@@ -70,7 +70,7 @@
             <td>
                 @if (!item.Accepted)
                 {
-                    <a asp-action="Accept" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Accept</a>
+                    <a asp-action="Accept" asp-route-id="@item.Id" asp-rout-includeAccepted="true" class="btn btn-secondary btn-block">Accept</a>
                 }
             </td>
         </tr>
