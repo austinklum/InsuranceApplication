@@ -1,0 +1,48 @@
+﻿@model IEnumerable<InsuranceApplication.Models.PTransaction>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Transactions</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.DrugName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AmountPaid)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.HolderId)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.DrugName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AmountPaid)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.HolderId)
+            </td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
