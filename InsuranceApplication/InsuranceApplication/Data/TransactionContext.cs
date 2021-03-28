@@ -14,6 +14,6 @@ namespace InsuranceApplication.Data
 
         }
 
-        public DbSet<Transaction> Policies { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
     }
 }
