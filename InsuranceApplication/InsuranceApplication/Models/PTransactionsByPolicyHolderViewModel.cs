@@ -10,7 +10,7 @@ namespace InsuranceApplication.Models
     {
         public List<PTransaction> Transactions { get; set; }
         public SelectList Holders { get; set; }
-        public int HolderId { get; set; }
+        public string HolderName { get; set; }
         public bool IncludeAccepted { get; set; }
     }
 }

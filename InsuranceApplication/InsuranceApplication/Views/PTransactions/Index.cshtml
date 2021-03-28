@@ -8,7 +8,7 @@
 <form asp-controller="PTransactions" asp-action="Index" method="get">
     <p>
 
-        <select asp-for="HolderId" asp-items="Model.Holders">
+        <select asp-for="HolderName" asp-items="Model.Holders">
             <option value="">All</option>
         </select>
 
@@ -29,7 +29,7 @@
                 @Html.DisplayNameFor(model => model.Transactions[0].AmountPaid)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Transactions[0].HolderId)
+                @Html.DisplayNameFor(model => model.Transactions[0].HolderName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Transactions[0].Accepted)
@@ -51,7 +51,7 @@
                 @Html.DisplayFor(modelItem => item.AmountPaid)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.HolderId)
+                @Html.DisplayFor(modelItem => item.HolderName)
             </td>
             <td>
                 @{ if (item.Accepted)
