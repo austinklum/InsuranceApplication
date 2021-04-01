@@ -11,6 +11,6 @@ namespace InsuranceApplication.Models
         public List<PTransaction> Transactions { get; set; }
         public SelectList Holders { get; set; }
         public string HolderName { get; set; }
-        public bool IncludeAccepted { get; set; }
+        public bool IncludeProcessed { get; set; }
     }
 }

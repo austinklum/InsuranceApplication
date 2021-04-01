@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using InsuranceApplication.Data;
 using InsuranceApplication.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace InsuranceApplication.Views.PTransactions
 {
@@ -14,26 +15,28 @@ namespace InsuranceApplication.Views.PTransactions
     {
         private readonly PTransactionContext _pTransactionContext;
         private readonly PolicyHolderContext _policyHolderContext;
+        private readonly PolicyDrugContext _policyDrugContext;
         private readonly PolicyContext _policyContext;
         private readonly DrugContext _drugContext;
 
-        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext, PolicyContext policyContext, DrugContext drugContext)
+        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext, PolicyContext policyContext, DrugContext drugContext, PolicyDrugContext policyDrugContext)
         {
             _pTransactionContext = pTransactionContext;
             _policyHolderContext = policyHolderContext;
             _policyContext = policyContext;
             _drugContext = drugContext;
+            _policyDrugContext = policyDrugContext;
         }
 
         // GET: PTransactions
-        public async Task<IActionResult> Index(string holderName, bool includeAccepted)
+        public async Task<IActionResult> Index(string holderName, bool includeProcessed)
         {
 
             IQueryable<PTransaction> transactions = from p in _pTransactionContext.PTransactions select p;
 
-            if(!includeAccepted)
+            if(!includeProcessed)
             {
-                transactions = transactions.Where(t => !t.Accepted);
+                transactions = transactions.Where(t => t.Accepted == null);
             }
 
             if (!string.IsNullOrEmpty(holderName))
@@ -60,7 +63,15 @@ namespace InsuranceApplication.Views.PTransactions
                 transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
 
             }
-
+            if(!string.IsNullOrEmpty(holderName))
+            {
+                HttpContext.Session.SetString("holderName", holderName);
+            }
+            else
+            {
+                HttpContext.Session.SetString("holderName", "");
+            }
+            HttpContext.Session.SetString("includeProcessed", includeProcessed.ToString());
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
@@ -90,7 +101,7 @@ namespace InsuranceApplication.Views.PTransactions
         }
 
         // GET: PTransactions/Details/5
-        public async Task<IActionResult> Accept(int? id)
+        public async Task<IActionResult> Process(int? id)
         {
             if (id == null)
             {
@@ -98,34 +109,53 @@ namespace InsuranceApplication.Views.PTransactions
             }
 
             PTransaction transaction = await _pTransactionContext.PTransactions.FirstAsync(m => m.Id == id);
-            transaction.Accepted = true;
 
-            Drug drug = await _drugContext.Drugs
-                .FirstAsync(d => d.Code == transaction.DrugCode);
+            PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
 
-            PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders
-                .FirstAsync(p => p.Id == transaction.HolderId);
+            Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
-            Policy policy = await _policyContext.Policies
-                .FirstAsync(p => p.Id == policyHolder.Id);
+            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
 
-            transaction.AmountPaid = getTotalCost(drug, policy, policyHolder, transaction);
-            policyHolder.AmountPaid += transaction.AmountPaid;
-            policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
+            IQueryable<PolicyDrug> coveredDrugs = _policyDrugContext.PolicyDrugs.Where(pd => pd.PolicyId == policy.Id);
 
-            _policyHolderContext.PolicyHolders.Update(policyHolder);
-            _policyHolderContext.SaveChanges();
+            PolicyDrug pd = coveredDrugs.FirstOrDefault(cd => cd.DrugId == drug.Id);
+
+            bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
+            bool inPolicy = pd != null;
+
+            transaction.Accepted = inDate && inPolicy;
+
+            if(transaction.Accepted == true)
+            {
+                transaction.AmountPaid = getTotalCost(drug, policy, policyHolder, transaction);
+                policyHolder.AmountPaid += transaction.AmountPaid;
+                policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
+
+                _policyHolderContext.PolicyHolders.Update(policyHolder);
+                _policyHolderContext.SaveChanges();
+            }
             _pTransactionContext.PTransactions.Update(transaction);
             _pTransactionContext.SaveChanges();
 
             // Send response to pharmacy
 
-            return RedirectToAction("Index");
+            string holderName = "";
+            if(policyHolder.Name == HttpContext.Session.GetString("holderName"))
+            {
+                holderName = policyHolder.Name;
+            }
+            bool includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
+
+            return RedirectToAction("Index", new { holderName = holderName, includeProcessed = includeProcessed });
         }
 
         private double getTotalCost(Drug d, Policy p, PolicyHolder h, PTransaction t)
         {
-            return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * t.Count * p.PercentCoverage, 2));
+            if (t.Accepted == true)
+            {
+                return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * t.Count * p.PercentCoverage, 2));
+            }
+            return 0;
         }
     }
 }

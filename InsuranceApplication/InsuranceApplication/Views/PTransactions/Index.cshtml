@@ -12,7 +12,7 @@
             <option value="">All</option>
         </select>
 
-        Include Accepted: <input type="checkbox" asp-for="IncludeAccepted" />
+        Include Processed: <input type="checkbox" asp-for="IncludeProcessed" />
         <input type="submit" value="Update" />
     </p>
 </form>
@@ -54,13 +54,17 @@
                 @Html.DisplayFor(modelItem => item.HolderName)
             </td>
             <td>
-                @{ if (item.Accepted)
+                @{ if (item.Accepted == true)
                     {
                         <p>Accepted</p>
                     }
+                    else if (item.Accepted == false)
+                    {
+                        <p>Rejected</p>
+                    }
                     else
                     {
-                        <p>Not Accepted</p>
+                        <p>Not Processed</p>
                     }
                 }
             </td>
@@ -68,9 +72,9 @@
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a>
             </td>
             <td>
-                @if (!item.Accepted)
+                @if (item.Accepted == null)
                 {
-                    <a asp-action="Accept" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Accept</a>
+                    <a asp-action="Process" asp-route-id="@item.Id" asp-rout-includeAccepted="true" class="btn btn-secondary btn-block">Process</a>
                 }
             </td>
         </tr>
