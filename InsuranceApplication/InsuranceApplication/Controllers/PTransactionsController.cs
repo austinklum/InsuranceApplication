@@ -120,14 +120,10 @@ namespace InsuranceApplication.Views.PTransactions
 
             PolicyDrug pd = coveredDrugs.FirstOrDefault(cd => cd.DrugId == drug.Id);
 
-            if(pd == null)
-            {
-                transaction.Accepted = false;
-            }
-            else
-            {
-                transaction.Accepted = true;
-            }
+            bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
+            bool inPolicy = pd != null;
+
+            transaction.Accepted = inDate && inPolicy;
 
             if(transaction.Accepted == true)
             {
