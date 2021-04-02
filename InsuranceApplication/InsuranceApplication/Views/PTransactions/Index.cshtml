@@ -20,19 +20,13 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Transactions[0].DrugName)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Transactions[0].Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Transactions[0].Count)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Transactions[0].HolderName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Transactions[0].Accepted)
+                @Html.DisplayNameFor(model => model.Transactions[0].Processed)
             </th>
             <th></th>
         </tr>
@@ -42,29 +36,23 @@
 {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.DrugName)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Count)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.HolderName)
             </td>
             <td>
-                @{ if (item.Accepted == true)
+                @{ if (item.Processed == true)
                     {
-                        <p>Accepted</p>
+                        <p>Fully Processed</p>
                     }
-                    else if (item.Accepted == false)
+                    else if (item.Processed == false)
                     {
-                        <p>Rejected</p>
+                        <p>Not Processed</p>
                     }
                     else
                     {
-                        <p>Not Processed</p>
+                        <p>In Progress</p>
                     }
                 }
             </td>
@@ -72,9 +60,9 @@
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a>
             </td>
             <td>
-                @if (item.Accepted == null)
+                @if (item.Processed != true)
                 {
-                    <a asp-action="Process" asp-route-id="@item.Id" asp-rout-includeAccepted="true" class="btn btn-secondary btn-block">Process</a>
+                    <a asp-action="Process" asp-route-id="@item.Id" asp-rout-includeAccepted="true" class="btn btn-secondary btn-block">Process all</a>
                 }
             </td>
         </tr>

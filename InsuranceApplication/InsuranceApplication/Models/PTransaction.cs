@@ -11,20 +11,14 @@ namespace InsuranceApplication.Models
     public class PTransaction
     {
         public int Id { get; set; }
-        [DisplayName("Drug")]
-        public string DrugCode { get; set; }
-        [NotMapped]
-        public string DrugName { get; set; }
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
         public DateTime Date { get; set; }
-        [DisplayName("Amount Paid")]
-        public double AmountPaid { get; set; }
         public int HolderId { get; set; }
-        public int Count { get; set; }
+        public bool? Processed { get; set; }
+
+
         [NotMapped]
         [DisplayName("Policyholder Name")]
         public string HolderName { get; set; }
-        public bool? Accepted { get; set; }
         [NotMapped]
         [DisplayName("Total Cost of Transaction")]
         public double TotalCost { get; set; }
