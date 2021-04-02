@@ -102,34 +102,53 @@ namespace InsuranceApplication.Views.PTransactions
                 return NotFound();
             }
 
-            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
+            Subtransaction subtransaction = await _transactionContext.Subtransactions.FirstAsync(s => s.Id == id);
+
+            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == subtransaction.PTransactionId);
 
             PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
 
             Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
-            //Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
+            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == subtransaction.DrugCode);
 
-            //IQueryable<PolicyDrug> coveredDrugs = _policyDrugContext.PolicyDrugs.Where(pd => pd.PolicyId == policy.Id);
+            IQueryable<PolicyDrug> coveredDrugs = _policyDrugContext.PolicyDrugs.Where(pd => pd.PolicyId == policy.Id);
 
-            //PolicyDrug pd = coveredDrugs.FirstOrDefault(cd => cd.DrugId == drug.Id);
+            PolicyDrug pd = coveredDrugs.FirstOrDefault(cd => cd.DrugId == drug.Id);
 
-            //bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
-            //bool inPolicy = pd != null;
+            bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
+            bool inPolicy = pd != null;
+            subtransaction.Accepted = inDate && inPolicy;
 
-            //transaction.Accepted = inDate && inPolicy;
+            bool? transactionProcessed = true;
+            List<Subtransaction> allSubtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
+            foreach(Subtransaction s in allSubtransactions)
+            {
+                if (s.Id == subtransaction.Id)
+                {
+                    continue;
+                }
+                if(s.Accepted == null)
+                {
+                    transactionProcessed = null;
+                    break;
+                }
+            }
 
-            //if(transaction.Accepted == true)
-            //{
-            //    transaction.AmountPaid = getTotalCost(drug, policy, policyHolder, transaction);
-            //    policyHolder.AmountPaid += transaction.AmountPaid;
-            //    policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
+            transaction.Processed = transactionProcessed;
 
-            //    _policyHolderContext.PolicyHolders.Update(policyHolder);
-            //    _policyHolderContext.SaveChanges();
-            //}
-            //_pTransactionContext.PTransactions.Update(transaction);
-            //_pTransactionContext.SaveChanges();
+            if (subtransaction.Accepted == true)
+            {
+                subtransaction.AmountPaid = getTotalCost(drug, policy, policyHolder, subtransaction);
+                policyHolder.AmountPaid += subtransaction.AmountPaid;
+                policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
+
+                _policyHolderContext.PolicyHolders.Update(policyHolder);
+                _policyHolderContext.SaveChanges();
+            }
+            _transactionContext.PTransactions.Update(transaction);
+            _transactionContext.Subtransactions.Update(subtransaction);
+            _transactionContext.SaveChanges();
 
             // Send response to pharmacy
 
@@ -140,15 +159,15 @@ namespace InsuranceApplication.Views.PTransactions
             }
             bool includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
 
-            return RedirectToAction("Index", new { holderName = holderName, includeProcessed = includeProcessed });
+            return RedirectToAction("Details", new { id = transaction.Id });
         }
 
-        private double getTotalCost(Drug d, Policy p, PolicyHolder h, PTransaction t)
+        private double getTotalCost(Drug d, Policy p, PolicyHolder h, Subtransaction s)
         {
-            //if (t.Accepted == true)
-            //{
-            //    return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * t.Count * p.PercentCoverage, 2));
-            //}
+            if (s.Accepted == true)
+            {
+                return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * s.Count * p.PercentCoverage, 2));
+            }
             return 0;
         }
     }

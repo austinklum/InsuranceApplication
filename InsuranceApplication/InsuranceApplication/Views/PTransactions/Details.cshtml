@@ -4,10 +4,9 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Transaction Details</h1>
 
 <div>
-    <h4>PTransaction</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-4">
@@ -15,6 +14,12 @@
         </dt>
         <dd class="col-sm-8">
             @Html.DisplayFor(model => model.policyHolder.Name)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.transaction.Date)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.transaction.Date)
         </dd>
     </dl>
 </div>
@@ -37,7 +42,7 @@
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.Code)</td>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.MedicalName)</td>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.CommercialName)</td>
-                <td>@Html.DisplayFor(modelItem => s.CurrentDrug.CostPer)</td>
+                <td><label>$</label>@Html.DisplayFor(modelItem => s.CurrentDrug.CostPer)</td>
                 <td>
                     @{ if (s.Accepted == true)
                         {
@@ -56,7 +61,7 @@
                 <td>
                     @if (s.Accepted == null)
                     {
-                        <a asp-action="Process" asp-route-id="@s.Id" class="btn btn-secondary btn-block">Process</a>
+                        <a asp-action="Process" asp-route-id="@s.Id" class="btn btn-secondary btn-block text-light">Process</a>
                     }
                 </td>
             </tr>
