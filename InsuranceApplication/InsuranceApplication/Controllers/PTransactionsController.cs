@@ -51,19 +51,6 @@ namespace InsuranceApplication.Views.PTransactions
 
             IQueryable<string> holderNames = holders.Select(h => h.Name);
 
-
-            //foreach (PTransaction transaction in transactions)
-            //{
-            //    Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
-            //    PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
-            //    Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
-
-            //    transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.HolderId).Name;
-            //    transaction.DrugName = _drugContext.Drugs.First(d => d.Code == transaction.DrugCode).MedicalName;
-            //    transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
-
-            //}
-
             if(!string.IsNullOrEmpty(holderName))
             {
                 HttpContext.Session.SetString("holderName", holderName);
@@ -91,17 +78,20 @@ namespace InsuranceApplication.Views.PTransactions
                 return NotFound();
             }
 
-            //PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
-            //Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
-            //PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
-            //Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
+            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
+            PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
+            Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
-            //transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
-            //transaction.TotalCostNoIns = Math.Round(drug.CostPer * transaction.Count,2);
-            //TransactionDetailsViewModel vm = new TransactionDetailsViewModel(transaction, drug);
+            IQueryable<Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id);
+            foreach ( Subtransaction s in subtransactions)
+            {
+                s.CurrentDrug = await _drugContext.Drugs.FirstAsync(d => d.Code == s.DrugCode);
 
-            //return View(vm);
-            return View();
+            }
+
+            TransactionDetailsViewModel vm = new TransactionDetailsViewModel(transaction, subtransactions.ToList(), policyHolder, policy);
+
+            return View(vm);
         }
 
         // GET: PTransactions/Details/5
