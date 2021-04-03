@@ -32,17 +32,22 @@ namespace InsuranceApplication.Views.PTransactions
         public async Task<IActionResult> Index(string holderName, bool includeProcessed)
         {
 
-            IQueryable<PTransaction> transactions = from p in _transactionContext.PTransactions select p;
+            List<PTransaction> transactions = (from p in _transactionContext.PTransactions select p).ToList();
+
+            foreach(PTransaction transaction in transactions)
+            {
+                transaction.Processed = isTransactionProcessed(transaction);
+            }
 
             if(!includeProcessed)
             {
-                transactions = transactions.Where(t => t.Processed != true);
+                transactions = transactions.Where(t => t.Processed != true).ToList();
             }
 
             if (!string.IsNullOrEmpty(holderName))
             {
                 PolicyHolder p = _policyHolderContext.PolicyHolders.FirstOrDefault(p => p.Name == holderName);
-                transactions = transactions.Where(t => t.HolderId == p.Id);
+                transactions = transactions.Where(t => t.HolderId == p.Id).ToList();
             }
 
             IQueryable<PolicyHolder> holders = from h in _policyHolderContext.PolicyHolders select h;
@@ -51,7 +56,14 @@ namespace InsuranceApplication.Views.PTransactions
 
             IQueryable<string> holderNames = holders.Select(h => h.Name);
 
-            if(!string.IsNullOrEmpty(holderName))
+            foreach (PTransaction transaction in transactions)
+            {
+                PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
+
+                transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.HolderId).Name;
+            }
+
+            if (!string.IsNullOrEmpty(holderName))
             {
                 HttpContext.Session.SetString("holderName", holderName);
             }
@@ -64,7 +76,7 @@ namespace InsuranceApplication.Views.PTransactions
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
-                Transactions = await transactions.ToListAsync(),
+                Transactions = transactions,
             };
 
             return View(TransactionByPH);
@@ -120,22 +132,7 @@ namespace InsuranceApplication.Views.PTransactions
             bool inPolicy = pd != null;
             subtransaction.Accepted = inDate && inPolicy;
 
-            bool? transactionProcessed = true;
-            List<Subtransaction> allSubtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
-            foreach(Subtransaction s in allSubtransactions)
-            {
-                if (s.Id == subtransaction.Id)
-                {
-                    continue;
-                }
-                if(s.Accepted == null)
-                {
-                    transactionProcessed = null;
-                    break;
-                }
-            }
-
-            transaction.Processed = transactionProcessed;
+            transaction.Processed = isTransactionProcessed(transaction, subtransaction);
 
             if (subtransaction.Accepted == true)
             {
@@ -169,6 +166,33 @@ namespace InsuranceApplication.Views.PTransactions
                 return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * s.Count * p.PercentCoverage, 2));
             }
             return 0;
+        }
+
+        private bool? isTransactionProcessed(PTransaction transaction, Subtransaction subtransaction = null)
+        {
+            List<Subtransaction> allSubtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
+            bool anyProcessed = false;
+            bool allProcessed = true;
+            foreach (Subtransaction s in allSubtransactions)
+            {
+                if (subtransaction != null && s.Id == subtransaction.Id)
+                {
+                    continue;
+                }
+                if (s.Accepted != null)
+                {
+                    anyProcessed = true;
+                }
+                else
+                {
+                    allProcessed = false;
+                }
+            }
+
+            if (!anyProcessed) return false;
+            if (anyProcessed && !allProcessed) return null;
+            //else allProcessed = true
+            return true;
         }
     }
 }

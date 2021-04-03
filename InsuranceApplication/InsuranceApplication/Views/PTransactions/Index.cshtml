@@ -62,7 +62,7 @@
             <td>
                 @if (item.Processed != true)
                 {
-                    <a asp-action="Process" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Process all</a>
+                    <a asp-action="ProcessAll" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Process all</a>
                 }
             </td>
         </tr>

@@ -15,7 +15,6 @@ namespace InsuranceApplication.Models
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}")]
         public DateTime Date { get; set; }
         public int HolderId { get; set; }
-        public bool? Processed { get; set; }
 
 
         [NotMapped]
@@ -27,5 +26,7 @@ namespace InsuranceApplication.Models
         [NotMapped]
         [DisplayName("Total Cost without Insurance")]
         public double TotalCostNoIns { get; set; }
+        [NotMapped]
+        public bool? Processed { get; set; }
     }
 }
