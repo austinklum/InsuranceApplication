@@ -159,6 +159,24 @@ namespace InsuranceApplication.Views.PTransactions
             return RedirectToAction("Details", new { id = transaction.Id });
         }
 
+        public async Task<IActionResult> ProcessAll(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
+
+            List <Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
+
+            foreach(Subtransaction s in subtransactions)
+            {
+                await Process(s.Id);
+            }
+
+            return RedirectToAction("Details", new { id = id });
+        }
+
         private double getTotalCost(Drug d, Policy p, PolicyHolder h, Subtransaction s)
         {
             if (s.Accepted == true)
