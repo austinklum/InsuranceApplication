@@ -8,13 +8,14 @@ using System.Transactions;
 
 namespace InsuranceApplication.Data
 {
-    public class PTransactionContext : DbContext
+    public class TransactionContext : DbContext
     {
-        public PTransactionContext(DbContextOptions<PTransactionContext> options) : base(options)
+        public TransactionContext(DbContextOptions<TransactionContext> options) : base(options)
         {
 
         }
 
         public DbSet<PTransaction> PTransactions { get; set; }
+        public DbSet<Subtransaction> Subtransactions { get; set; }
     }
 }

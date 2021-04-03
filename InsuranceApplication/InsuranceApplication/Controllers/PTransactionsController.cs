@@ -13,15 +13,15 @@ namespace InsuranceApplication.Views.PTransactions
 {
     public class PTransactionsController : Controller
     {
-        private readonly PTransactionContext _pTransactionContext;
+        private readonly TransactionContext _transactionContext;
         private readonly PolicyHolderContext _policyHolderContext;
         private readonly PolicyDrugContext _policyDrugContext;
         private readonly PolicyContext _policyContext;
         private readonly DrugContext _drugContext;
 
-        public PTransactionsController(PTransactionContext pTransactionContext, PolicyHolderContext policyHolderContext, PolicyContext policyContext, DrugContext drugContext, PolicyDrugContext policyDrugContext)
+        public PTransactionsController(TransactionContext pTransactionContext, PolicyHolderContext policyHolderContext, PolicyContext policyContext, DrugContext drugContext, PolicyDrugContext policyDrugContext)
         {
-            _pTransactionContext = pTransactionContext;
+            _transactionContext = pTransactionContext;
             _policyHolderContext = policyHolderContext;
             _policyContext = policyContext;
             _drugContext = drugContext;
@@ -32,38 +32,38 @@ namespace InsuranceApplication.Views.PTransactions
         public async Task<IActionResult> Index(string holderName, bool includeProcessed)
         {
 
-            IQueryable<PTransaction> transactions = from p in _pTransactionContext.PTransactions select p;
+            List<PTransaction> transactions = (from p in _transactionContext.PTransactions select p).ToList();
+
+            foreach(PTransaction transaction in transactions)
+            {
+                transaction.Processed = isTransactionProcessed(transaction);
+            }
 
             if(!includeProcessed)
             {
-                transactions = transactions.Where(t => t.Accepted == null);
+                transactions = transactions.Where(t => t.Processed != true).ToList();
             }
 
             if (!string.IsNullOrEmpty(holderName))
             {
                 PolicyHolder p = _policyHolderContext.PolicyHolders.FirstOrDefault(p => p.Name == holderName);
-                transactions = transactions.Where(t => t.HolderId == p.Id);
+                transactions = transactions.Where(t => t.HolderId == p.Id).ToList();
             }
 
             IQueryable<PolicyHolder> holders = from h in _policyHolderContext.PolicyHolders select h;
-            List<int> holderIds = (from p in _pTransactionContext.PTransactions orderby p.HolderId select p.HolderId).ToList();
+            List<int> holderIds = (from p in _transactionContext.PTransactions orderby p.HolderId select p.HolderId).ToList();
             holders = holders.Where(h => holderIds.Contains(h.Id));
 
             IQueryable<string> holderNames = holders.Select(h => h.Name);
 
-
             foreach (PTransaction transaction in transactions)
             {
-                Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
                 PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
-                Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
                 transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.HolderId).Name;
-                transaction.DrugName = _drugContext.Drugs.First(d => d.Code == transaction.DrugCode).MedicalName;
-                transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
-
             }
-            if(!string.IsNullOrEmpty(holderName))
+
+            if (!string.IsNullOrEmpty(holderName))
             {
                 HttpContext.Session.SetString("holderName", holderName);
             }
@@ -71,12 +71,14 @@ namespace InsuranceApplication.Views.PTransactions
             {
                 HttpContext.Session.SetString("holderName", "");
             }
+
             HttpContext.Session.SetString("includeProcessed", includeProcessed.ToString());
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
-                Transactions = await transactions.ToListAsync(),
+                Transactions = transactions,
             };
+
             return View(TransactionByPH);
         }
 
@@ -88,14 +90,18 @@ namespace InsuranceApplication.Views.PTransactions
                 return NotFound();
             }
 
-            PTransaction transaction = await _pTransactionContext.PTransactions.FirstAsync(m => m.Id == id);
-            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
+            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
             PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
             Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
-            transaction.TotalCost = getTotalCost(drug, policy, policyHolder, transaction);
-            transaction.TotalCostNoIns = Math.Round(drug.CostPer * transaction.Count,2);
-            TransactionDetailsViewModel vm = new TransactionDetailsViewModel(transaction, drug);
+            IQueryable<Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id);
+            foreach ( Subtransaction s in subtransactions)
+            {
+                s.CurrentDrug = await _drugContext.Drugs.FirstAsync(d => d.Code == s.DrugCode);
+
+            }
+
+            TransactionDetailsViewModel vm = new TransactionDetailsViewModel(transaction, subtransactions.ToList(), policyHolder, policy);
 
             return View(vm);
         }
@@ -108,13 +114,15 @@ namespace InsuranceApplication.Views.PTransactions
                 return NotFound();
             }
 
-            PTransaction transaction = await _pTransactionContext.PTransactions.FirstAsync(m => m.Id == id);
+            Subtransaction subtransaction = await _transactionContext.Subtransactions.FirstAsync(s => s.Id == id);
+
+            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == subtransaction.PTransactionId);
 
             PolicyHolder policyHolder = await _policyHolderContext.PolicyHolders.FirstAsync(p => p.Id == transaction.HolderId);
 
             Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
-            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == transaction.DrugCode);
+            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == subtransaction.DrugCode);
 
             IQueryable<PolicyDrug> coveredDrugs = _policyDrugContext.PolicyDrugs.Where(pd => pd.PolicyId == policy.Id);
 
@@ -122,20 +130,22 @@ namespace InsuranceApplication.Views.PTransactions
 
             bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
             bool inPolicy = pd != null;
+            subtransaction.Accepted = inDate && inPolicy;
 
-            transaction.Accepted = inDate && inPolicy;
+            transaction.Processed = isTransactionProcessed(transaction, subtransaction);
 
-            if(transaction.Accepted == true)
+            if (subtransaction.Accepted == true)
             {
-                transaction.AmountPaid = getTotalCost(drug, policy, policyHolder, transaction);
-                policyHolder.AmountPaid += transaction.AmountPaid;
+                subtransaction.AmountPaid = getTotalCost(drug, policy, policyHolder, subtransaction);
+                policyHolder.AmountPaid += subtransaction.AmountPaid;
                 policyHolder.AmountRemaining = policy.MaxCoverage - policyHolder.AmountPaid;
 
                 _policyHolderContext.PolicyHolders.Update(policyHolder);
                 _policyHolderContext.SaveChanges();
             }
-            _pTransactionContext.PTransactions.Update(transaction);
-            _pTransactionContext.SaveChanges();
+            _transactionContext.PTransactions.Update(transaction);
+            _transactionContext.Subtransactions.Update(subtransaction);
+            _transactionContext.SaveChanges();
 
             // Send response to pharmacy
 
@@ -146,16 +156,61 @@ namespace InsuranceApplication.Views.PTransactions
             }
             bool includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
 
-            return RedirectToAction("Index", new { holderName = holderName, includeProcessed = includeProcessed });
+            return RedirectToAction("Details", new { id = transaction.Id });
         }
 
-        private double getTotalCost(Drug d, Policy p, PolicyHolder h, PTransaction t)
+        public async Task<IActionResult> ProcessAll(int? id)
         {
-            if (t.Accepted == true)
+            if (id == null)
             {
-                return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * t.Count * p.PercentCoverage, 2));
+                return NotFound();
+            }
+            PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
+
+            List <Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
+
+            foreach(Subtransaction s in subtransactions)
+            {
+                await Process(s.Id);
+            }
+
+            return RedirectToAction("Details", new { id = id });
+        }
+
+        private double getTotalCost(Drug d, Policy p, PolicyHolder h, Subtransaction s)
+        {
+            if (s.Accepted == true)
+            {
+                return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * s.Count * p.PercentCoverage, 2));
             }
             return 0;
+        }
+
+        private bool? isTransactionProcessed(PTransaction transaction, Subtransaction subtransaction = null)
+        {
+            List<Subtransaction> allSubtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
+            bool anyProcessed = false;
+            bool allProcessed = true;
+            foreach (Subtransaction s in allSubtransactions)
+            {
+                if (subtransaction != null && s.Id == subtransaction.Id)
+                {
+                    continue;
+                }
+                if (s.Accepted != null)
+                {
+                    anyProcessed = true;
+                }
+                else
+                {
+                    allProcessed = false;
+                }
+            }
+
+            if (!anyProcessed) return false;
+            if (anyProcessed && !allProcessed) return null;
+            //else allProcessed = true
+            return true;
         }
     }
 }

@@ -4,55 +4,70 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Transaction Details</h1>
 
 <div>
-    <h4>PTransaction</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.drug.Code)
+            @Html.DisplayNameFor(model => model.policyHolder.Name)
         </dt>
         <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.drug.Code)
+            @Html.DisplayFor(model => model.policyHolder.Name)
         </dd>
         <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.drug.MedicalName)
+            @Html.DisplayNameFor(model => model.transaction.Date)
         </dt>
         <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.drug.MedicalName)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.drug.CommercialName)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.drug.CommercialName)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.drug.CostPer)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.drug.CostPer)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.transaction.Count)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.transaction.Count)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.transaction.TotalCost)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.transaction.TotalCost)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.transaction.TotalCostNoIns)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.transaction.TotalCostNoIns)
+            @Html.DisplayFor(model => model.transaction.Date)
         </dd>
     </dl>
+</div>
+<div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.Code)</th>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.MedicalName)</th>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.CommercialName)</th>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.CostPer)</th>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].Accepted)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.subtransactions)
+            {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => s.CurrentDrug.Code)</td>
+                <td>@Html.DisplayFor(modelItem => s.CurrentDrug.MedicalName)</td>
+                <td>@Html.DisplayFor(modelItem => s.CurrentDrug.CommercialName)</td>
+                <td><label>$</label>@Html.DisplayFor(modelItem => s.CurrentDrug.CostPer)</td>
+                <td>
+                    @{ if (s.Accepted == true)
+                        {
+                            <p>Accepted</p>
+                        }
+                        else if (s.Accepted == false)
+                        {
+                            <p>Rejected</p>
+                        }
+                        else
+                        {
+                            <p>Not Processed</p>
+                        }
+                    }
+                </td>
+                <td>
+                    @if (s.Accepted == null)
+                    {
+                        <a asp-action="Process" asp-route-id="@s.Id" class="btn btn-secondary btn-block text-light">Process</a>
+                    }
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
 </div>
 <div>
     <a asp-action="Index">Back to List</a>
