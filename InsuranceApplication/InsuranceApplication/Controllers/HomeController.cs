@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using InsuranceApplication.Models;
 using InsuranceApplication.Data;
 using Microsoft.AspNetCore.Http;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace InsuranceApplication.Controllers
 {
@@ -74,7 +76,9 @@ namespace InsuranceApplication.Controllers
                 {
                     enteredUser.Username = HttpContext.Session.GetString("Username");
                 }
-                var foundUser = _userContext.Users.FirstOrDefault(a => a.Username.Equals(enteredUser.Username));
+
+                User foundUser = _userContext.Users.FirstOrDefault(a => a.Username == enteredUser.Username);
+
                 if (foundUser == null)
                 {
                     HttpContext.Session.SetString("Username", "");
@@ -87,10 +91,18 @@ namespace InsuranceApplication.Controllers
                     HttpContext.Session.SetString(SecurityQuestionNum, "4");
                     return View();
                 }
+                SHA512 hasher = new SHA512Managed();
                 //No security question responses, so check if password is correct
                 if (enteredUser.SecQ1Response == null && enteredUser.SecQ2Response == null && enteredUser.SecQ3Response == null)
                 {
-                    if (foundUser.Password.Equals(enteredUser.Password))
+
+                    byte[] saltedPwd = Encoding.ASCII.GetBytes(enteredUser.Password + Encoding.ASCII.GetString(foundUser.Salt));
+                    byte[] saltedHashedPwd = hasher.ComputeHash(saltedPwd);
+                    foundUser.PasswordHash = saltedHashedPwd;
+                    // Uncomment these two to set the user's password to the entered password
+                    //_userContext.Users.Update(foundUser);
+                    //_userContext.SaveChanges();
+                    if (foundUser.PasswordHash.Equals(saltedHashedPwd))
                     {
                         //send to first security question
                         int nextQuestionNum = random.Next(1, 4);
@@ -117,10 +129,18 @@ namespace InsuranceApplication.Controllers
                     }
                     return View(enteredUser);
                 }
+                byte[] saltedQ1 = Encoding.ASCII.GetBytes(enteredUser.SecQ1Response + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedQ1 = hasher.ComputeHash(saltedQ1);
+                byte[] saltedQ2 = Encoding.ASCII.GetBytes(enteredUser.SecQ2Response + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedQ2 = hasher.ComputeHash(saltedQ2);
+                byte[] saltedQ3 = Encoding.ASCII.GetBytes(enteredUser.SecQ3Response + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedQ3 = hasher.ComputeHash(saltedQ3);
+                //SetSecurityQuestionAnswer(foundUser, saltedHashedQ1, saltedHashedQ2, saltedHashedQ3);
+
                 //Check if any are right
-                if ((enteredUser.SecQ1Response != null && enteredUser.SecQ1Response.Equals(foundUser.SecQ1Response)) ||
-                   (enteredUser.SecQ2Response != null && enteredUser.SecQ2Response.Equals(foundUser.SecQ2Response)) ||
-                   (enteredUser.SecQ3Response != null && enteredUser.SecQ3Response.Equals(foundUser.SecQ3Response)))
+                if ((enteredUser.SecQ1Response != null && saltedHashedQ1.SequenceEqual(foundUser.SecQ1ResponseHash)) ||
+                   (enteredUser.SecQ2Response != null && saltedHashedQ2.SequenceEqual(foundUser.SecQ2ResponseHash)) ||
+                   (enteredUser.SecQ3Response != null && saltedHashedQ3.SequenceEqual(foundUser.SecQ3ResponseHash)))
                 {
                     HttpContext.Session.SetString("Role", "Insurance Agent");
                     //send to user dashboard ;
@@ -201,6 +221,25 @@ namespace InsuranceApplication.Controllers
             HttpContext.Session.SetString(SecurityQuestionNum, "0");
             HttpContext.Session.SetString(SecurityQuestionsAttempted, "");
             return RedirectToAction("Login");
+        }
+
+        private void SetSecurityQuestionAnswer(User foundUser, byte[] hash1, byte[] hash2, byte[] hash3)
+        {
+            int securityQuestion = int.Parse(HttpContext.Session.GetString(SecurityQuestionNum));
+            switch(securityQuestion)
+            {
+                case 1:
+                    foundUser.SecQ1ResponseHash = hash1;
+                    break;
+                case 2:
+                    foundUser.SecQ2ResponseHash = hash2;
+                    break;
+                case 3:
+                    foundUser.SecQ3ResponseHash = hash3;
+                    break;
+            }
+            _userContext.Users.Update(foundUser);
+            _userContext.SaveChanges();
         }
     }
 }
