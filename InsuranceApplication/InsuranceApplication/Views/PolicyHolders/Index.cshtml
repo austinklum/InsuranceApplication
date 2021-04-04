@@ -22,7 +22,7 @@
             <th>@Html.DisplayNameFor(model => model.EndDate)</th>
             <th>@Html.DisplayNameFor(model => model.AmountPaid)</th>
             <th>@Html.DisplayNameFor(model => model.AmountRemaining)</th>
-            <th></th>
+            @*<th></th>*@
         </tr>
     </thead>
     <tbody>
@@ -36,9 +36,9 @@
             <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
             <td><label>$</label>@Html.DisplayFor(modelItem => item.AmountPaid)</td>
             <td><label>$</label>@Html.DisplayFor(modelItem => item.AmountRemaining)</td>
-            <td>
+            @*<td>
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-            </td>
+            </td>*@
         </tr>
 }
     </tbody>
