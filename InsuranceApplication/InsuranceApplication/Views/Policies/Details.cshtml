@@ -46,14 +46,33 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Premium)
         </dd>
-        @*<dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CoveredDrugs)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CoveredDrugs)
-        </dd>*@
     </dl>
 </div>
 <div>
-    <a asp-action="Index">Back to List</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.CoveredDrugs[0].Code)</th>
+                <th>@Html.DisplayNameFor(model => model.CoveredDrugs[0].MedicalName)</th>
+                <th>@Html.DisplayNameFor(model => model.CoveredDrugs[0].CommercialName)</th>
+                <th>@Html.DisplayNameFor(model => model.CoveredDrugs[0].CostPer)</th>
+                <th>@Html.DisplayNameFor(model => model.CoveredDrugs[0].Type)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.CoveredDrugs)
+            {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => d.Code)</td>
+                <td>@Html.DisplayFor(modelItem => d.MedicalName)</td>
+                <td>@Html.DisplayFor(modelItem => d.CommercialName)</td>
+                <td><label>$</label>@Html.DisplayFor(modelItem => d.CostPer)</td>
+                <td>@Html.DisplayFor(modelItem => d.Type)</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div>
+    <a asp-action="Index" class="btn btn-secondary btn-block text-light" style="width: 15%">Back to List</a>
 </div>
