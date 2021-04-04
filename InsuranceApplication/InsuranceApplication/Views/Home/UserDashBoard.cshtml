@@ -15,6 +15,7 @@
             <text>You are a @HttpContextAccessor.HttpContext.Session.GetString("Role").ToString()</text>
         </p>
     }
+    @await Component.InvokeAsync("TransactionList")
     @using (Html.BeginForm("LogOut", "Home", FormMethod.Post))
     {
         <input type="submit" value="Log out" />
