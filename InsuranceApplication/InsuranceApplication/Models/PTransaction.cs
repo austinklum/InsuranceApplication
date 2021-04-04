@@ -11,7 +11,6 @@ namespace InsuranceApplication.Models
     public class PTransaction
     {
         public int Id { get; set; }
-        //[DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}")]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}")]
         public DateTime Date { get; set; }
         public int HolderId { get; set; }
@@ -27,6 +26,7 @@ namespace InsuranceApplication.Models
         [DisplayName("Total Cost without Insurance")]
         public double TotalCostNoIns { get; set; }
         [NotMapped]
+        [DisplayName("Status")]
         public bool? Processed { get; set; }
     }
 }

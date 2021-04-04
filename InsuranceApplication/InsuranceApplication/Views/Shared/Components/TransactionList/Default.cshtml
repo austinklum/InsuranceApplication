@@ -1,0 +1,50 @@
+﻿@model InsuranceApplication.Models.PTransactionsByPolicyHolderViewModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Transactions[0].Date)</th>
+            <th>@Html.DisplayNameFor(model => model.Transactions[0].HolderName)</th>
+            <th>@Html.DisplayNameFor(model => model.Transactions[0].Processed)</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Transactions)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Date)</td>
+                <td>@Html.DisplayFor(modelItem => item.HolderName)</td>
+                <td>
+                    @{ if (item.Processed == true)
+                        {
+                            <p>Fully Processed</p>
+                        }
+                        else if (item.Processed == false)
+                        {
+                            <p>Not Processed</p>
+                        }
+                        else
+                        {
+                            <p>In Progress</p>
+                        }
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-controller="PTransactions" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Details</a>
+                </td>
+                <td>
+                    @if (item.Processed != true)
+                    {
+                        <a asp-action="ProcessAll" asp-controller="PTransactions" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Process all</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

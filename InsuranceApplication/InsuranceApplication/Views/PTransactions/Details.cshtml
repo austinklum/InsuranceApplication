@@ -10,7 +10,7 @@
     <hr />
     <dl class="row">
         <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.policyHolder.Name)
+            <label>Policyholder</label>
         </dt>
         <dd class="col-sm-8">
             @Html.DisplayFor(model => model.policyHolder.Name)
@@ -31,44 +31,50 @@
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.MedicalName)</th>
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.CommercialName)</th>
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.CostPer)</th>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].Count)</th>
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].Accepted)</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var s in Model.subtransactions)
+           @foreach (var s in Model.subtransactions)
             {
             <tr>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.Code)</td>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.MedicalName)</td>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.CommercialName)</td>
                 <td><label>$</label>@Html.DisplayFor(modelItem => s.CurrentDrug.CostPer)</td>
+                <td>@Html.DisplayFor(modelItem => s.Count)</td>
                 <td>
-                    @{ if (s.Accepted == true)
+                    @{
+                        switch (s.Accepted)
                         {
-                            <p>Accepted</p>
-                        }
-                        else if (s.Accepted == false)
-                        {
-                            <p>Rejected</p>
-                        }
-                        else
-                        {
-                            <p>Not Processed</p>
+                            case -2:
+                                <p>Rejected - out of date</p>
+                                break;
+                            case -1:
+                                <p>Rejected - drug not in policy</p>
+                                break;
+                            case 0:
+                                <p>Not Processed</p>
+                                break;
+                            case 1:
+                                <p>Accepted</p>
+                                break;
                         }
                     }
                 </td>
                 <td>
-                    @if (s.Accepted == null)
+                    @if (s.Accepted == 0)
                     {
                         <a asp-action="Process" asp-route-id="@s.Id" class="btn btn-secondary btn-block text-light">Process</a>
-                    }
+                            }
                 </td>
-            </tr>
+             </tr>
             }
         </tbody>
     </table>
 </div>
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" class="btn btn-secondary btn-block text-light" style="width: 15%">Back to List</a>
 </div>

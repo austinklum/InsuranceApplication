@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,9 +19,12 @@ namespace InsuranceApplication.Models
         [DisplayName("Maximum Coverage")]
         public double MaxCoverage { get; set; }
         [DisplayName("Percent Coverage")]
+        [DisplayFormat(DataFormatString = "{0:P2}")]
         public double PercentCoverage { get; set; }
         public double Premium { get; set; }
-        //[DisplayName("Covered Drugs")]
-        //public Drug[] CoveredDrugs { get; set; }
+
+        [NotMapped]
+        [DisplayName("Covered Drugs")]
+        public List<Drug> CoveredDrugs { get; set; }
     }
 }

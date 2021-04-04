@@ -130,11 +130,22 @@ namespace InsuranceApplication.Views.PTransactions
 
             bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
             bool inPolicy = pd != null;
-            subtransaction.Accepted = inDate && inPolicy;
+            if(!inDate)
+            {
+                subtransaction.Accepted = -2;
+            }
+            else if(!inPolicy)
+            {
+                subtransaction.Accepted = -1;
+            }
+            else
+            {
+                subtransaction.Accepted = 1;
+            }
 
             transaction.Processed = isTransactionProcessed(transaction, subtransaction);
 
-            if (subtransaction.Accepted == true)
+            if (subtransaction.Accepted == 1)
             {
                 subtransaction.AmountPaid = getTotalCost(drug, policy, policyHolder, subtransaction);
                 policyHolder.AmountPaid += subtransaction.AmountPaid;
@@ -179,7 +190,7 @@ namespace InsuranceApplication.Views.PTransactions
 
         private double getTotalCost(Drug d, Policy p, PolicyHolder h, Subtransaction s)
         {
-            if (s.Accepted == true)
+            if (s.Accepted == 1)
             {
                 return Math.Min(h.AmountRemaining, Math.Round(d.CostPer * s.Count * p.PercentCoverage, 2));
             }
@@ -197,7 +208,7 @@ namespace InsuranceApplication.Views.PTransactions
                 {
                     continue;
                 }
-                if (s.Accepted != null)
+                if (s.Accepted != 0)
                 {
                     anyProcessed = true;
                 }

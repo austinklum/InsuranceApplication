@@ -12,17 +12,21 @@ namespace InsuranceApplication.Views.Policies
 {
     public class PoliciesController : Controller
     {
-        private readonly PolicyContext _context;
+        private readonly PolicyContext _policyContext;
+        private readonly PolicyDrugContext _policyDrugContext;
+        private readonly DrugContext _drugContext;
 
-        public PoliciesController(PolicyContext context)
+        public PoliciesController(PolicyContext pc, PolicyDrugContext pdc,DrugContext dc)
         {
-            _context = context;
+            _policyContext = pc;
+            _policyDrugContext = pdc;
+            _drugContext = dc;
         }
 
         // GET: Policies
         public async Task<IActionResult> Index(string searchString)
         {
-            var policies = from p in _context.Policies select p;
+            var policies = from p in _policyContext.Policies select p;
             if(!string.IsNullOrEmpty(searchString))
             {
                 policies = policies.Where(s => s.Name.Contains(searchString) || s.PolicyCode.Contains(searchString));
@@ -39,19 +43,30 @@ namespace InsuranceApplication.Views.Policies
                 return NotFound();
             }
 
-            var policy = await _context.Policies
-                .FirstOrDefaultAsync(m => m.Id == id);
+            Policy policy = await _policyContext.Policies.FirstAsync(m => m.Id == id);
+
             if (policy == null)
             {
                 return NotFound();
             }
+
+            List<PolicyDrug> policyDrugs = _policyDrugContext.PolicyDrugs.Where(pd => pd.PolicyId == policy.Id).ToList();
+
+            List<Drug> coveredDrugs = new List<Drug>();
+
+            foreach(PolicyDrug pd in policyDrugs)
+            {
+                coveredDrugs.AddRange(_drugContext.Drugs.Where(d => d.Id == pd.DrugId));
+            }
+            
+            policy.CoveredDrugs = coveredDrugs;
 
             return View(policy);
         }
 
         private bool PolicyExists(int id)
         {
-            return _context.Policies.Any(e => e.Id == id);
+            return _policyContext.Policies.Any(e => e.Id == id);
         }
 
 

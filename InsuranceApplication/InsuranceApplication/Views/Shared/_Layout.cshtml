@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -10,16 +13,16 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-secondary border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand text-light" asp-area="" asp-controller="Home" asp-action="Index">Insurance Application</a>
+            <div class="container d-flex align-items-center">
+                <a class="navbar-brand text-light d-sm-inline-flex" asp-area="" asp-controller="Home" asp-action="UserDashBoard">Insurance Application</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav flex-grow-1 align-items-baseline">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="UserDashBoard">Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
@@ -30,8 +33,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="PolicyHolders" asp-action="Index">Policy Holders</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item mr-auto">
                             <a class="nav-link text-light" asp-area="" asp-controller="PTransactions" asp-action="Index">Transactions</a>
+                        </li>
+                        <li>
+                            <label class="text-light d-sm-inline-flex ">Welcome, @HttpContextAccessor.HttpContext.Session.GetString("Username").ToString()</label>
+                        </li>
+                        <li>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="LogOut">Log out</a>
                         </li>
                     </ul>
                 </div>
