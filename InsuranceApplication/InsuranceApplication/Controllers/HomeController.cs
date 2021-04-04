@@ -74,10 +74,10 @@ namespace InsuranceApplication.Controllers
             {
                 if (enteredUser.Username == null)
                 {
-                    enteredUser.Username = HttpContext.Session.GetString("Username");
+                    enteredUser.Username = HttpContext.Session.GetString("Username").ToLower();
                 }
 
-                User foundUser = _userContext.Users.FirstOrDefault(a => a.Username == enteredUser.Username);
+                User foundUser = _userContext.Users.FirstOrDefault(a => a.Username.ToLower() == enteredUser.Username.ToLower());
 
                 if (foundUser == null)
                 {
