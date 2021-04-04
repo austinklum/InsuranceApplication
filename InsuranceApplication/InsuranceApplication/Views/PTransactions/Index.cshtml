@@ -13,7 +13,9 @@
         </select>
 
         Include Processed: <input type="checkbox" asp-for="IncludeProcessed" />
-        <input type="submit" value="Update" />
+        <div>
+            <input type="submit" value="Update" class="btn btn-secondary btn-block text-light" style="width: 15%"/>
+        </div>
     </p>
 </form>
 <table class="table">
@@ -28,6 +30,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Transactions[0].Processed)
             </th>
+            <th></th>
             <th></th>
         </tr>
     </thead>
@@ -57,7 +60,7 @@
                 }
             </td>
             <td>
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-secondary btn-block">Details</a>
             </td>
             <td>
                 @if (item.Processed != true)

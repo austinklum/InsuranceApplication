@@ -31,6 +31,7 @@
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.MedicalName)</th>
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.CommercialName)</th>
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].CurrentDrug.CostPer)</th>
+                <th>@Html.DisplayNameFor(model => model.subtransactions[0].Count)</th>
                 <th>@Html.DisplayNameFor(model => model.subtransactions[0].Accepted)</th>
                 <th></th>
             </tr>
@@ -43,6 +44,7 @@
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.MedicalName)</td>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.CommercialName)</td>
                 <td><label>$</label>@Html.DisplayFor(modelItem => s.CurrentDrug.CostPer)</td>
+                <td>@Html.DisplayFor(modelItem => s.Count)</td>
                 <td>
                     @{ if (s.Accepted == true)
                         {
@@ -70,5 +72,5 @@
     </table>
 </div>
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" class="btn btn-secondary btn-block text-light" style="width: 15%">Back to List</a>
 </div>

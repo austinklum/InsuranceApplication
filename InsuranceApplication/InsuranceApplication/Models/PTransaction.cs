@@ -27,6 +27,7 @@ namespace InsuranceApplication.Models
         [DisplayName("Total Cost without Insurance")]
         public double TotalCostNoIns { get; set; }
         [NotMapped]
+        [DisplayName("Status")]
         public bool? Processed { get; set; }
     }
 }

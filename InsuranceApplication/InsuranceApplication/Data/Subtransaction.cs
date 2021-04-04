@@ -15,10 +15,17 @@ namespace InsuranceApplication.Data
         public string DrugCode { get; set; }
         public int Count { get; set; }
         public double AmountPaid { get; set; }
+        [DisplayName("Status")]
         public bool? Accepted { get; set; }
 
         [NotMapped]
         [DisplayName("Drug")]
         public Drug CurrentDrug { get; set; }
+        [NotMapped]
+        [DisplayName("Total Cost of Drug")]
+        public double TotalCost { get; set; }
+        [NotMapped]
+        [DisplayName("Total Cost without Insurance")]
+        public double TotalCostNoIns { get; set; }
     }
 }
