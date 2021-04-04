@@ -70,7 +70,7 @@ namespace InsuranceApplication.Components
                 {
                     continue;
                 }
-                if (s.Accepted != null)
+                if (s.Accepted != 0)
                 {
                     anyProcessed = true;
                 }

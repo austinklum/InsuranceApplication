@@ -98,11 +98,11 @@ namespace InsuranceApplication.Controllers
 
                     byte[] saltedPwd = Encoding.ASCII.GetBytes(enteredUser.Password + Encoding.ASCII.GetString(foundUser.Salt));
                     byte[] saltedHashedPwd = hasher.ComputeHash(saltedPwd);
-                    foundUser.PasswordHash = saltedHashedPwd;
-                    // Uncomment these two to set the user's password to the entered password
+                    // Uncomment these three to set the user's password to the entered password
+                    //foundUser.PasswordHash = saltedHashedPwd;
                     //_userContext.Users.Update(foundUser);
                     //_userContext.SaveChanges();
-                    if (foundUser.PasswordHash.Equals(saltedHashedPwd))
+                    if (foundUser.PasswordHash.SequenceEqual(saltedHashedPwd))
                     {
                         //send to first security question
                         int nextQuestionNum = random.Next(1, 4);
