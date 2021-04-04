@@ -37,7 +37,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var s in Model.subtransactions)
+           @foreach (var s in Model.subtransactions)
             {
             <tr>
                 <td>@Html.DisplayFor(modelItem => s.CurrentDrug.Code)</td>
@@ -46,27 +46,31 @@
                 <td><label>$</label>@Html.DisplayFor(modelItem => s.CurrentDrug.CostPer)</td>
                 <td>@Html.DisplayFor(modelItem => s.Count)</td>
                 <td>
-                    @{ if (s.Accepted == true)
+                    @{
+                        switch (s.Accepted)
                         {
-                            <p>Accepted</p>
-                        }
-                        else if (s.Accepted == false)
-                        {
-                            <p>Rejected</p>
-                        }
-                        else
-                        {
-                            <p>Not Processed</p>
+                            case -2:
+                                <p>Rejected - out of date</p>
+                                break;
+                            case -1:
+                                <p>Rejected - drug not in policy</p>
+                                break;
+                            case 0:
+                                <p>Not Processed</p>
+                                break;
+                            case 1:
+                                <p>Accepted</p>
+                                break;
                         }
                     }
                 </td>
                 <td>
-                    @if (s.Accepted == null)
+                    @if (s.Accepted == 0)
                     {
                         <a asp-action="Process" asp-route-id="@s.Id" class="btn btn-secondary btn-block text-light">Process</a>
-                    }
+                            }
                 </td>
-            </tr>
+             </tr>
             }
         </tbody>
     </table>

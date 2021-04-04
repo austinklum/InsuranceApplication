@@ -16,7 +16,7 @@ namespace InsuranceApplication.Data
         public int Count { get; set; }
         public double AmountPaid { get; set; }
         [DisplayName("Status")]
-        public bool? Accepted { get; set; }
+        public int Accepted { get; set; }
 
         [NotMapped]
         [DisplayName("Drug")]
