@@ -27,5 +27,6 @@ namespace InsuranceApplication.Models
         public double AmountPaid { get; set; }
         [DisplayName("Amount Remaining")]
         public double AmountRemaining { get; set; }
+        public string Pronouns { get; set; }
     }
 }

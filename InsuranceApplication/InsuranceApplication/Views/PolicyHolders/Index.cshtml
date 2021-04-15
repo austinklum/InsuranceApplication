@@ -16,6 +16,7 @@
         <tr>
             <th>@Html.DisplayNameFor(model => model.Name)</th>
             <th>@Html.DisplayNameFor(model => model.DateOfBirth)</th>
+            <th>@Html.DisplayNameFor(model => model.Pronouns)</th>
             <th>@Html.DisplayNameFor(model => model.Address)</th>
             <th>@Html.DisplayNameFor(model => model.PolicyCode)</th>
             <th>@Html.DisplayNameFor(model => model.StartDate)</th>
@@ -30,6 +31,7 @@
         <tr>
             <td>@Html.DisplayFor(modelItem => item.Name)</td>
             <td>@Html.DisplayFor(modelItem => item.DateOfBirth)</td>
+            <td>@Html.DisplayFor(modelItem => item.Pronouns)</td>
             <td>@Html.DisplayFor(modelItem => item.Address)</td>
             <td>@Html.DisplayFor(modelItem => item.PolicyCode)</td>
             <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
@@ -37,8 +39,8 @@
             <td><label>$</label>@Html.DisplayFor(modelItem => item.AmountPaid)</td>
             <td><label>$</label>@Html.DisplayFor(modelItem => item.AmountRemaining)</td>
             @*<td>
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-            </td>*@
+            <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+        </td>*@
         </tr>
 }
     </tbody>
