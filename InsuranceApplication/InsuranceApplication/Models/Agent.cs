@@ -9,6 +9,7 @@ namespace InsuranceApplication.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Pronouns { get; set; }
         public int UserId { get; set; }
     }
 }
