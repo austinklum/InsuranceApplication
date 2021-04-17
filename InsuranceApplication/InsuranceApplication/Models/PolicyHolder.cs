@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace InsuranceApplication.Models
         public DateTime DateOfBirth { get; set; }
         public string Address { get; set; }
         [DisplayName("Policy")]
-        public string PolicyCode { get; set; }
+        public int PolicyId { get; set; }
         [DisplayName("Start Date")]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}")]
         public DateTime StartDate { get; set; }
@@ -28,5 +29,7 @@ namespace InsuranceApplication.Models
         [DisplayName("Amount Remaining")]
         public double AmountRemaining { get; set; }
         public string Pronouns { get; set; }
+        [NotMapped]
+        public string PolicyCode { get; set; }
     }
 }
