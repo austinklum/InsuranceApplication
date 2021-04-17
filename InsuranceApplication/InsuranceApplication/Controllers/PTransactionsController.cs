@@ -225,7 +225,7 @@ namespace InsuranceApplication.Views.PTransactions
             return true;
         }
 
-        private void ProcessPTransaction(HttpContext context)
+        private IActionResult ProcessPTransaction(HttpContext context)
         {
             int id = int.Parse(context.Request.Query["Id"]);
             DateTime date = DateTime.Parse(context.Request.Query["Date"]);
@@ -238,8 +238,9 @@ namespace InsuranceApplication.Views.PTransactions
             };
             _transactionContext.PTransactions.Add(transaction);
             _transactionContext.SaveChanges();
+            return Ok();
         }
-        private void ProcessSubtransaction(HttpContext context)
+        private IActionResult ProcessSubtransaction(HttpContext context)
         {
             int id = int.Parse(context.Request.Query["Id"]);
             int ptransactionId = int.Parse(context.Request.Query["PTransactionId"]);
@@ -258,6 +259,7 @@ namespace InsuranceApplication.Views.PTransactions
             };
             _transactionContext.Subtransactions.Add(sub);
             _transactionContext.SaveChanges();
+            return Ok();
         }
     }
 }
