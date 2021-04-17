@@ -12,7 +12,7 @@ namespace InsuranceApplication.Data
     {
         public int Id { get; set; }
         public int PTransactionId { get; set; }
-        public string DrugCode { get; set; }
+        public int DrugId { get; set; }
         public int Count { get; set; }
         public double AmountPaid { get; set; }
         [DisplayName("Status")]

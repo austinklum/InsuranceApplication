@@ -54,6 +54,7 @@ namespace InsuranceApplication.Views.PTransactions
             List<int> holderIds = (from p in _transactionContext.PTransactions orderby p.HolderId select p.HolderId).ToList();
             holders = holders.Where(h => holderIds.Contains(h.Id));
 
+
             IQueryable<string> holderNames = holders.Select(h => h.Name);
 
             foreach (PTransaction transaction in transactions)
@@ -97,7 +98,7 @@ namespace InsuranceApplication.Views.PTransactions
             IQueryable<Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id);
             foreach ( Subtransaction s in subtransactions)
             {
-                s.CurrentDrug = await _drugContext.Drugs.FirstAsync(d => d.Code == s.DrugCode);
+                s.CurrentDrug = await _drugContext.Drugs.FirstAsync(d => d.Id == s.DrugId);
 
             }
 
@@ -122,7 +123,7 @@ namespace InsuranceApplication.Views.PTransactions
 
             Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
-            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Code == subtransaction.DrugCode);
+            Drug drug = await _drugContext.Drugs.FirstAsync(d => d.Id == subtransaction.DrugId);
 
             IQueryable<PolicyDrug> coveredDrugs = _policyDrugContext.PolicyDrugs.Where(pd => pd.PolicyId == policy.Id);
 
