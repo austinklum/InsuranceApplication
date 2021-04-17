@@ -34,12 +34,12 @@ namespace InsuranceApplication.Views.PTransactions
 
             List<PTransaction> transactions = (from p in _transactionContext.PTransactions select p).ToList();
 
-            foreach(PTransaction transaction in transactions)
+            foreach (PTransaction transaction in transactions)
             {
                 transaction.Processed = isTransactionProcessed(transaction);
             }
 
-            if(!includeProcessed)
+            if (!includeProcessed)
             {
                 transactions = transactions.Where(t => t.Processed != true).ToList();
             }
@@ -96,7 +96,7 @@ namespace InsuranceApplication.Views.PTransactions
             Policy policy = await _policyContext.Policies.FirstAsync(p => p.Id == policyHolder.Id);
 
             IQueryable<Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id);
-            foreach ( Subtransaction s in subtransactions)
+            foreach (Subtransaction s in subtransactions)
             {
                 s.CurrentDrug = await _drugContext.Drugs.FirstAsync(d => d.Id == s.DrugId);
 
@@ -131,11 +131,11 @@ namespace InsuranceApplication.Views.PTransactions
 
             bool inDate = policyHolder.StartDate < DateTime.Now && DateTime.Now < policyHolder.EndDate;
             bool inPolicy = pd != null;
-            if(!inDate)
+            if (!inDate)
             {
                 subtransaction.Accepted = -2;
             }
-            else if(!inPolicy)
+            else if (!inPolicy)
             {
                 subtransaction.Accepted = -1;
             }
@@ -162,7 +162,7 @@ namespace InsuranceApplication.Views.PTransactions
             // Send response to pharmacy
 
             string holderName = "";
-            if(policyHolder.Name == HttpContext.Session.GetString("holderName"))
+            if (policyHolder.Name == HttpContext.Session.GetString("holderName"))
             {
                 holderName = policyHolder.Name;
             }
@@ -179,9 +179,9 @@ namespace InsuranceApplication.Views.PTransactions
             }
             PTransaction transaction = await _transactionContext.PTransactions.FirstAsync(m => m.Id == id);
 
-            List <Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
+            List<Subtransaction> subtransactions = _transactionContext.Subtransactions.Where(s => s.PTransactionId == transaction.Id).ToList();
 
-            foreach(Subtransaction s in subtransactions)
+            foreach (Subtransaction s in subtransactions)
             {
                 await Process(s.Id);
             }
@@ -223,6 +223,41 @@ namespace InsuranceApplication.Views.PTransactions
             if (anyProcessed && !allProcessed) return null;
             //else allProcessed = true
             return true;
+        }
+
+        private void ProcessPTransaction(HttpContext context)
+        {
+            int id = int.Parse(context.Request.Query["Id"]);
+            DateTime date = DateTime.Parse(context.Request.Query["Date"]);
+            int holderId = int.Parse(context.Request.Query["HolderId"]);
+            PTransaction transaction = new PTransaction
+            {
+                Id = id,
+                Date = date,
+                HolderId = holderId,
+            };
+            _transactionContext.PTransactions.Add(transaction);
+            _transactionContext.SaveChanges();
+        }
+        private void ProcessSubtransaction(HttpContext context)
+        {
+            int id = int.Parse(context.Request.Query["Id"]);
+            int ptransactionId = int.Parse(context.Request.Query["PTransactionId"]);
+            int drugId = int.Parse(context.Request.Query["DrugId"]);
+            int count = int.Parse(context.Request.Query["Count"]);
+            double amountPaid = 0;
+            int accepted = 0;
+            Subtransaction sub = new Subtransaction
+            {
+                Id = id,
+                PTransactionId = ptransactionId,
+                DrugId = drugId,
+                Count = count,
+                AmountPaid = amountPaid,
+                Accepted = accepted
+            };
+            _transactionContext.Subtransactions.Add(sub);
+            _transactionContext.SaveChanges();
         }
     }
 }
