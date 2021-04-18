@@ -224,42 +224,5 @@ namespace InsuranceApplication.Views.PTransactions
             //else allProcessed = true
             return true;
         }
-
-        private IActionResult ProcessPTransaction(HttpContext context)
-        {
-            int id = int.Parse(context.Request.Query["Id"]);
-            DateTime date = DateTime.Parse(context.Request.Query["Date"]);
-            int holderId = int.Parse(context.Request.Query["HolderId"]);
-            PTransaction transaction = new PTransaction
-            {
-                Id = id,
-                Date = date,
-                HolderId = holderId,
-            };
-            _transactionContext.PTransactions.Add(transaction);
-            _transactionContext.SaveChanges();
-            return Ok();
-        }
-        private IActionResult ProcessSubtransaction(HttpContext context)
-        {
-            int id = int.Parse(context.Request.Query["Id"]);
-            int ptransactionId = int.Parse(context.Request.Query["PTransactionId"]);
-            int drugId = int.Parse(context.Request.Query["DrugId"]);
-            int count = int.Parse(context.Request.Query["Count"]);
-            double amountPaid = 0;
-            int accepted = 0;
-            Subtransaction sub = new Subtransaction
-            {
-                Id = id,
-                PTransactionId = ptransactionId,
-                DrugId = drugId,
-                Count = count,
-                AmountPaid = amountPaid,
-                Accepted = accepted
-            };
-            _transactionContext.Subtransactions.Add(sub);
-            _transactionContext.SaveChanges();
-            return Ok();
-        }
     }
 }
