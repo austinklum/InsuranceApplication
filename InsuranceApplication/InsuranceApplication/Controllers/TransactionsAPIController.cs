@@ -10,13 +10,13 @@ using InsuranceApplication.Models;
 
 namespace InsuranceApplication.Controllers
 {
-    [Route("api/PTransactionsAPI")]
+    [Route("api/TransactionsAPI")]
     [ApiController]
-    public class PTransactionsAPIController : ControllerBase
+    public class TransactionsAPIController : ControllerBase
     {
         private readonly TransactionContext _context;
 
-        public PTransactionsAPIController(TransactionContext context)
+        public TransactionsAPIController(TransactionContext context)
         {
             _context = context;
         }
@@ -84,6 +84,15 @@ namespace InsuranceApplication.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetPTransaction), new { id = pTransaction.Id }, pTransaction);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Subtransaction>> PostSubtransaction(Subtransaction subtransaction)
+        {
+            _context.Subtransactions.Add(subtransaction);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetPTransaction), new { id = subtransaction.Id }, subtransaction);
         }
 
         // DELETE: api/PTransactionsAPI/5
