@@ -249,7 +249,7 @@ namespace InsuranceApplication.Views.PTransactions
 #if DEBUG
             var request = (HttpWebRequest)WebRequest.Create("https://localhost:44381/api/PrescribedDrugsAPI");
 #else
-                var request = (HttpWebRequest)WebRequest.Create("http://wngcsp86.intra.uwlax.edu:81/api/SubtransactionsAPI");
+                var request = (HttpWebRequest)WebRequest.Create("http://wngcsp86.intra.uwlax.edu:8080/api/SubtransactionsAPI");
 #endif
 
             request.Method = "POST";
