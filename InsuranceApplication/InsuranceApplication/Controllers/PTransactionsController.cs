@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using InsuranceApplication.Data;
 using InsuranceApplication.Models;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
+using System.Text;
+using System.Net;
+using System.IO;
 
 namespace InsuranceApplication.Views.PTransactions
 {
@@ -160,13 +164,19 @@ namespace InsuranceApplication.Views.PTransactions
             _transactionContext.SaveChanges();
 
             // Send response to pharmacy
+            SendResponse( subtransaction);
 
             string holderName = "";
             if (policyHolder.Name == HttpContext.Session.GetString("holderName"))
             {
                 holderName = policyHolder.Name;
             }
-            bool includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
+
+            bool includeProcessed = false;
+            if(!string.IsNullOrEmpty(HttpContext.Session.GetString("includeProcessed")))
+            {
+                includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
+            }
 
             return RedirectToAction("Details", new { id = transaction.Id });
         }
@@ -223,6 +233,34 @@ namespace InsuranceApplication.Views.PTransactions
             if (anyProcessed && !allProcessed) return null;
             //else allProcessed = true
             return true;
+        }
+
+        private void SendResponse(Subtransaction subtransaction)
+        {
+            PrescribedDrug pd = new PrescribedDrug
+            {
+                Id = subtransaction.Id,
+                CoveredAmount = subtransaction.AmountPaid,
+            };
+
+            string json = JsonSerializer.Serialize(pd);
+
+            var bytes = Encoding.UTF8.GetBytes(json);
+#if DEBUG
+            var request = (HttpWebRequest)WebRequest.Create("https://localhost:44381/api/PrescribedDrugsAPI");
+#else
+                var request = (HttpWebRequest)WebRequest.Create("http://wngcsp86.intra.uwlax.edu:81/api/SubtransactionsAPI");
+#endif
+
+            request.Method = "POST";
+            request.ContentLength = bytes.Length;
+            request.ContentType = "application/json";
+            Stream stream = request.GetRequestStream();
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Close();
+
+            WebResponse subtransactionResponse = request.GetResponse();
+
         }
     }
 }
