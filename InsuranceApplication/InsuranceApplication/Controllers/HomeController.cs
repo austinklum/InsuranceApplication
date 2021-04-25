@@ -10,6 +10,7 @@ using InsuranceApplication.Data;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace InsuranceApplication.Controllers
 {
@@ -17,6 +18,7 @@ namespace InsuranceApplication.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private UserContext _userContext;
+        private AgentContext _agentContext;
 
         Random random;
         private List<String> SecurityQuestions = new List<string>{ "What is your mother's maiden name?",
@@ -33,11 +35,14 @@ namespace InsuranceApplication.Controllers
         private const string SecurityQuestionNum = "SecurityQuestionNum";
         private const string SecurityQuestionText = "SecurityQuestionText";
         private const string SecurityQuestionsAttempted = "SecurityQuestionsAttempted";
+        public static string UserId = "UserId";
+        public static string Name = "Name";
 
-        public HomeController(ILogger<HomeController> logger, UserContext context)
+        public HomeController(ILogger<HomeController> logger, UserContext context, AgentContext agentContext)
         {
             _logger = logger;
             _userContext = context;
+            _agentContext = agentContext;
             random = new Random();
         }
 
@@ -91,9 +96,18 @@ namespace InsuranceApplication.Controllers
                     HttpContext.Session.SetString(SecurityQuestionNum, "4");
                     return View();
                 }
+                if (foundUser.Salt == null)
+                {
+                    byte[] newSalt = new byte[32];
+                    random.NextBytes(newSalt);
+                    foundUser.Salt = newSalt;
+                    _userContext.Update(foundUser);
+                    _userContext.SaveChanges();
+                }
                 SHA512 hasher = new SHA512Managed();
                 //No security question responses, so check if password is correct
                 if (enteredUser.SecQ1Response == null && enteredUser.SecQ2Response == null && enteredUser.SecQ3Response == null)
+                //if (enteredUser.SecQ1Response == null && enteredUser.SecQ2Response == null && enteredUser.SecQ3Response == null && !HttpContext.Session.GetString(SecurityQuestionsAttempted).Contains("1"))
                 {
 
                     byte[] saltedPwd = Encoding.ASCII.GetBytes(enteredUser.Password + Encoding.ASCII.GetString(foundUser.Salt));
@@ -102,6 +116,8 @@ namespace InsuranceApplication.Controllers
                     //foundUser.PasswordHash = saltedHashedPwd;
                     //_userContext.Users.Update(foundUser);
                     //_userContext.SaveChanges();
+
+                    //if (foundUser.PasswordHash == null || foundUser.PasswordHash.SequenceEqual(saltedHashedPwd))
                     if (foundUser.PasswordHash.SequenceEqual(saltedHashedPwd))
                     {
                         //send to first security question
@@ -138,11 +154,15 @@ namespace InsuranceApplication.Controllers
                 //SetSecurityQuestionAnswer(foundUser, saltedHashedQ1, saltedHashedQ2, saltedHashedQ3);
 
                 //Check if any are right
+                //if (foundUser.SecQ1ResponseHash == null || foundUser.SecQ2ResponseHash == null || foundUser.SecQ3ResponseHash == null)
                 if ((enteredUser.SecQ1Response != null && saltedHashedQ1.SequenceEqual(foundUser.SecQ1ResponseHash)) ||
                    (enteredUser.SecQ2Response != null && saltedHashedQ2.SequenceEqual(foundUser.SecQ2ResponseHash)) ||
                    (enteredUser.SecQ3Response != null && saltedHashedQ3.SequenceEqual(foundUser.SecQ3ResponseHash)))
                 {
                     HttpContext.Session.SetString("Role", "Insurance Agent");
+                    HttpContext.Session.SetString(UserId, foundUser.Id.ToString());
+                    Agent agent = _agentContext.Agents.First(p => p.UserId == foundUser.Id);
+                    HttpContext.Session.SetString(Name, agent.Name);
                     //send to user dashboard ;
                     return RedirectToAction("UserDashBoard");
                 }
@@ -215,6 +235,95 @@ namespace InsuranceApplication.Controllers
             }
         }
 
+        public ActionResult MyDetails()
+        {
+            User foundUser = _userContext.Users.First(u => u.Id.ToString() == HttpContext.Session.GetString(UserId));
+            Agent foundAgent = _agentContext.Agents.First(p => p.UserId == foundUser.Id);
+            UserDetailsViewModel vm = new UserDetailsViewModel
+            {
+                CurrentUser = foundUser,
+                CurrentAgent = foundAgent
+            };
+            return View(vm);
+        }
+
+        public ActionResult EditMyDetails()
+        {
+            User foundUser = _userContext.Users.First(u => u.Id.ToString() == HttpContext.Session.GetString(UserId));
+            Agent foundAgent = _agentContext.Agents.First(p => p.UserId == foundUser.Id);
+            UserDetailsViewModel vm = new UserDetailsViewModel
+            {
+                CurrentUser = foundUser,
+                CurrentAgent = foundAgent
+            };
+            vm.Questions = GetSelectListItems(SecurityQuestions);
+            return View(vm);
+        }
+
+        [HttpPost]
+        public ActionResult EditMyDetails(UserDetailsViewModel vm)
+        {
+            if (!ModelState.IsValid || vm.CurrentUser.SecQ2Index == vm.CurrentUser.SecQ1Index || vm.CurrentUser.SecQ3Index == vm.CurrentUser.SecQ1Index || vm.CurrentUser.SecQ3Index == vm.CurrentUser.SecQ2Index)
+            {
+                vm.Questions = GetSelectListItems(SecurityQuestions);
+                return View(vm);
+            }
+            User foundUser = _userContext.Users.First(u => u.Id.ToString() == HttpContext.Session.GetString(UserId));
+            Agent foundAgent = _agentContext.Agents.First(p => p.UserId == foundUser.Id);
+
+
+            SHA512 hasher = new SHA512Managed();
+
+            if (!string.IsNullOrEmpty(vm.CurrentUser.Password))
+            {
+                byte[] saltedPwd = Encoding.ASCII.GetBytes(vm.CurrentUser.Password + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedPwd = hasher.ComputeHash(saltedPwd);
+                foundUser.PasswordHash = saltedHashedPwd;
+            }
+
+            foundUser.SecQ1Index = vm.CurrentUser.SecQ1Index;
+            foundUser.SecQ2Index = vm.CurrentUser.SecQ2Index;
+            foundUser.SecQ3Index = vm.CurrentUser.SecQ3Index;
+
+            if (!string.IsNullOrEmpty(vm.CurrentUser.SecQ1Response))
+            {
+                byte[] saltedQ1 = Encoding.ASCII.GetBytes(vm.CurrentUser.SecQ1Response + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedQ1 = hasher.ComputeHash(saltedQ1);
+                foundUser.SecQ1ResponseHash = saltedHashedQ1;
+            }
+            if (!string.IsNullOrEmpty(vm.CurrentUser.SecQ2Response))
+            {
+                byte[] saltedQ2 = Encoding.ASCII.GetBytes(vm.CurrentUser.SecQ2Response + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedQ2 = hasher.ComputeHash(saltedQ2);
+                foundUser.SecQ2ResponseHash = saltedHashedQ2;
+            }
+            if (!string.IsNullOrEmpty(vm.CurrentUser.SecQ3Response))
+            {
+                byte[] saltedQ3 = Encoding.ASCII.GetBytes(vm.CurrentUser.SecQ3Response + Encoding.ASCII.GetString(foundUser.Salt));
+                byte[] saltedHashedQ3 = hasher.ComputeHash(saltedQ3);
+                foundUser.SecQ3ResponseHash = saltedHashedQ3;
+            }
+
+            if (!string.IsNullOrEmpty(vm.CurrentAgent.Name))
+            {
+                foundAgent.Name = vm.CurrentAgent.Name;
+            }
+            if (!string.IsNullOrEmpty(vm.CurrentAgent.Pronouns))
+            {
+                foundAgent.Pronouns = vm.CurrentAgent.Pronouns;
+            }
+
+            _userContext.Users.Update(foundUser);
+            _userContext.SaveChanges();
+            _agentContext.Agents.Update(foundAgent);
+            _agentContext.SaveChanges();
+
+            HttpContext.Session.SetString(Name, foundAgent.Name);
+            HttpContext.Session.SetString("Username", foundUser.Username);
+
+            return RedirectToAction("MyDetails");
+        }
+
         public ActionResult LogOut()
         {
             HttpContext.Session.SetString("Username", "");
@@ -240,6 +349,21 @@ namespace InsuranceApplication.Controllers
             }
             _userContext.Users.Update(foundUser);
             _userContext.SaveChanges();
+        }
+
+        private IEnumerable<SelectListItem> GetSelectListItems(IEnumerable<string> elements)
+        {
+            var selectList = new List<SelectListItem>();
+            for (int i = 0; i < elements.Count(); i++)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value = i.ToString(),
+                    Text = elements.ElementAt(i)
+                }); ;
+            }
+
+            return selectList;
         }
     }
 }
