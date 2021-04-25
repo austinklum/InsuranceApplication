@@ -96,9 +96,18 @@ namespace InsuranceApplication.Controllers
                     HttpContext.Session.SetString(SecurityQuestionNum, "4");
                     return View();
                 }
+                if (foundUser.Salt == null)
+                {
+                    byte[] newSalt = new byte[32];
+                    random.NextBytes(newSalt);
+                    foundUser.Salt = newSalt;
+                    _userContext.Update(foundUser);
+                    _userContext.SaveChanges();
+                }
                 SHA512 hasher = new SHA512Managed();
                 //No security question responses, so check if password is correct
                 if (enteredUser.SecQ1Response == null && enteredUser.SecQ2Response == null && enteredUser.SecQ3Response == null)
+                //if (enteredUser.SecQ1Response == null && enteredUser.SecQ2Response == null && enteredUser.SecQ3Response == null && !HttpContext.Session.GetString(SecurityQuestionsAttempted).Contains("1"))
                 {
 
                     byte[] saltedPwd = Encoding.ASCII.GetBytes(enteredUser.Password + Encoding.ASCII.GetString(foundUser.Salt));
@@ -107,6 +116,8 @@ namespace InsuranceApplication.Controllers
                     //foundUser.PasswordHash = saltedHashedPwd;
                     //_userContext.Users.Update(foundUser);
                     //_userContext.SaveChanges();
+
+                    //if (foundUser.PasswordHash == null || foundUser.PasswordHash.SequenceEqual(saltedHashedPwd))
                     if (foundUser.PasswordHash.SequenceEqual(saltedHashedPwd))
                     {
                         //send to first security question
@@ -143,6 +154,7 @@ namespace InsuranceApplication.Controllers
                 //SetSecurityQuestionAnswer(foundUser, saltedHashedQ1, saltedHashedQ2, saltedHashedQ3);
 
                 //Check if any are right
+                //if (foundUser.SecQ1ResponseHash == null || foundUser.SecQ2ResponseHash == null || foundUser.SecQ3ResponseHash == null)
                 if ((enteredUser.SecQ1Response != null && saltedHashedQ1.SequenceEqual(foundUser.SecQ1ResponseHash)) ||
                    (enteredUser.SecQ2Response != null && saltedHashedQ2.SequenceEqual(foundUser.SecQ2ResponseHash)) ||
                    (enteredUser.SecQ3Response != null && saltedHashedQ3.SequenceEqual(foundUser.SecQ3ResponseHash)))
