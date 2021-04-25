@@ -149,6 +149,8 @@ namespace InsuranceApplication.Controllers
                 {
                     HttpContext.Session.SetString("Role", "Insurance Agent");
                     HttpContext.Session.SetString(UserId, foundUser.Id.ToString());
+                    Agent agent = _agentContext.Agents.First(p => p.UserId == foundUser.Id);
+                    HttpContext.Session.SetString(Name, agent.Name);
                     //send to user dashboard ;
                     return RedirectToAction("UserDashBoard");
                 }
