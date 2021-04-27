@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Text;
 using System.Net;
 using System.IO;
+using InsuranceApplication.Controllers;
 
 namespace InsuranceApplication.Views.PTransactions
 {
@@ -70,14 +71,14 @@ namespace InsuranceApplication.Views.PTransactions
 
             if (!string.IsNullOrEmpty(holderName))
             {
-                HttpContext.Session.SetString("holderName", holderName);
+                HttpContext.Session.SetString(HomeController.Name, holderName);
             }
             else
             {
-                HttpContext.Session.SetString("holderName", "");
+                HttpContext.Session.SetString(HomeController.Name, "");
             }
 
-            HttpContext.Session.SetString("includeProcessed", includeProcessed.ToString());
+            HttpContext.Session.SetString(HomeController.IncludeProcessed, includeProcessed.ToString());
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
@@ -167,15 +168,15 @@ namespace InsuranceApplication.Views.PTransactions
             SendResponse( subtransaction);
 
             string holderName = "";
-            if (policyHolder.Name == HttpContext.Session.GetString("holderName"))
+            if (policyHolder.Name == HttpContext.Session.GetString(HomeController.Name))
             {
                 holderName = policyHolder.Name;
             }
 
             bool includeProcessed = false;
-            if(!string.IsNullOrEmpty(HttpContext.Session.GetString("includeProcessed")))
+            if(!string.IsNullOrEmpty(HttpContext.Session.GetString(HomeController.IncludeProcessed)))
             {
-                includeProcessed = bool.Parse(HttpContext.Session.GetString("includeProcessed"));
+                includeProcessed = bool.Parse(HttpContext.Session.GetString(HomeController.IncludeProcessed));
             }
 
             return RedirectToAction("Details", new { id = transaction.Id });

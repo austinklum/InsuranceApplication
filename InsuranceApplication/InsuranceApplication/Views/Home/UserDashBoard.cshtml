@@ -1,14 +1,15 @@
 ﻿@using Microsoft.AspNetCore.Http
+@using InsuranceApplication.Controllers 
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
     ViewBag.Title = "UserDashBoard";
 }
 
 <fieldset>
-    @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
+    @if (HttpContextAccessor.HttpContext.Session.GetString(HomeController.Username) != null)
     {
         <p>
-            <H3>Welcome @HttpContextAccessor.HttpContext.Session.GetString("Username").ToString()</H3>
+            <H3>Welcome @HttpContextAccessor.HttpContext.Session.GetString(HomeController.Username).ToString()</H3>
         </p>
     }
     <h4>Unprocessed transactions</h4>
