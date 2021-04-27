@@ -47,6 +47,10 @@
                             @Html.LabelFor(a => a.Password, new { @class = "form-label" })
                             @Html.PasswordFor(a => a.Password, new { @class = "form-control" })
                             @Html.ValidationMessageFor(a => a.Password, "", new { @class = "text-danger" })
+                            @if(!string.IsNullOrEmpty(HttpContextAccessor.HttpContext.Session.GetString("IncorrectPasswordString")))
+                            {
+                                <label class="text-danger">@HttpContextAccessor.HttpContext.Session.GetString("IncorrectPasswordString")</label>
+                            }
                         }
 
                     </div>
