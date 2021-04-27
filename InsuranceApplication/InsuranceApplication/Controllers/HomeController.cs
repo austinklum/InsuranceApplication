@@ -21,22 +21,38 @@ namespace InsuranceApplication.Controllers
         private AgentContext _agentContext;
 
         Random random;
-        private List<String> SecurityQuestions = new List<string>{ "What is your mother's maiden name?",
-                                                                   "Where did you go to highschool?",
-                                                                   "What city were you born in?",
-                                                                   "What is the make and model of your first car?",
-                                                                   "Where was your first job?",
-                                                                   "What was the name of your first pet?",
-                                                                   "What was your childhood nickname?",
-                                                                   "What was the first concert you attended?",
-                                                                   "What street did you live on in third grade?",
-                                                                   "What was your childhood best friend's name?" };
+        private List<String> SecurityQuestions = new List<string>{ "What city were you born in?",
+                                                                   "What is the first name of your favorite schoolteacher?",
+                                                                   "What is the short name of the high school you attended?",
+                                                                   "Which year did you graduate from high school?",
+                                                                   "What is the first name of your favorite singer?",
+                                                                   "What is your favorite color?",
+                                                                   "What is the first name of your mother’s sister?",
+                                                                   "What is the first name of your father’s brother?",
+                                                                   "In which year, your immediate elder sibling was born?",
+                                                                   "In which year, your immediate younger sibling was born?",
+                                                                   "What are the last four digits of your current phone number?",
+                                                                   "Which city would you like to visit as your dream vacation?",
+                                                                   "Which country would you to visit as your dream vacation?",
+                                                                   "What was your birth month and date?",
+                                                                   "What is your closest friend’s nickname?",
+                                                                   "What is the first name of your first roommate?",
+                                                                   "What is the name of the college you attended first?",
+                                                                   "What is the name of the course you liked the most in your first year of college?",
+                                                                   "What is the name of the course you liked the most in your first year of high school?",
+                                                                   "What was the make of your first car?",
+                                                                   "In which year, you first flew in an airplane?"};
 
-        private const string SecurityQuestionNum = "SecurityQuestionNum";
-        private const string SecurityQuestionText = "SecurityQuestionText";
-        private const string SecurityQuestionsAttempted = "SecurityQuestionsAttempted";
+        public const string SecurityQuestionNum = "SecurityQuestionNum";
+        public const string SecurityQuestionText = "SecurityQuestionText";
+        public const string SecurityQuestionsAttempted = "SecurityQuestionsAttempted";
         public static string UserId = "UserId";
+        public static string Username = "Username";
         public static string Name = "Name";
+        public static string IncorrectPasswordString = "IncorrectPasswordString";
+        public static string Role = "Role";
+        public static string IncludeProcessed = "IncludeProcessed";
+
 
         public HomeController(ILogger<HomeController> logger, UserContext context, AgentContext agentContext)
         {
@@ -48,7 +64,7 @@ namespace InsuranceApplication.Controllers
 
         public IActionResult Index()
         {
-            HttpContext.Session.SetString("Username", "");
+            HttpContext.Session.SetString(Username, "");
             HttpContext.Session.SetString(SecurityQuestionNum, "0");
             HttpContext.Session.SetString(SecurityQuestionsAttempted, "");
             return RedirectToAction("Login");
@@ -75,24 +91,26 @@ namespace InsuranceApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> LoginAsync(User enteredUser)
         {
+            HttpContext.Session.SetString(IncorrectPasswordString, "");
             if (ModelState.IsValid)
             {
                 if (enteredUser.Username == null)
                 {
-                    enteredUser.Username = HttpContext.Session.GetString("Username").ToLower();
+                    enteredUser.Username = HttpContext.Session.GetString(Username).ToLower();
                 }
 
                 User foundUser = _userContext.Users.FirstOrDefault(a => a.Username.ToLower() == enteredUser.Username.ToLower());
 
                 if (foundUser == null)
                 {
-                    HttpContext.Session.SetString("Username", "");
+                    HttpContext.Session.SetString(Username, "");
+                    HttpContext.Session.SetString(IncorrectPasswordString, "Username or password is incorrect");
                     HttpContext.Session.SetString(SecurityQuestionNum, "0");
                     return View();
                 }
                 if (foundUser.AccountStatus != 1)
                 {
-                    HttpContext.Session.SetString("Username", "");
+                    HttpContext.Session.SetString(Username, "");
                     HttpContext.Session.SetString(SecurityQuestionNum, "4");
                     return View();
                 }
@@ -124,7 +142,7 @@ namespace InsuranceApplication.Controllers
                         int nextQuestionNum = random.Next(1, 4);
                         HttpContext.Session.SetString(SecurityQuestionNum, nextQuestionNum.ToString());
                         HttpContext.Session.SetString(SecurityQuestionsAttempted, nextQuestionNum.ToString());
-                        HttpContext.Session.SetString("Username", foundUser.Username);
+                        HttpContext.Session.SetString(Username, foundUser.Username);
 
                         switch (nextQuestionNum)
                         {
@@ -143,6 +161,8 @@ namespace InsuranceApplication.Controllers
 
                         return View(enteredUser);
                     }
+
+                    HttpContext.Session.SetString(IncorrectPasswordString, "Username or password is incorrect");
                     return View(enteredUser);
                 }
                 byte[] saltedQ1 = Encoding.ASCII.GetBytes(enteredUser.SecQ1Response + Encoding.ASCII.GetString(foundUser.Salt));
@@ -159,7 +179,7 @@ namespace InsuranceApplication.Controllers
                    (enteredUser.SecQ2Response != null && saltedHashedQ2.SequenceEqual(foundUser.SecQ2ResponseHash)) ||
                    (enteredUser.SecQ3Response != null && saltedHashedQ3.SequenceEqual(foundUser.SecQ3ResponseHash)))
                 {
-                    HttpContext.Session.SetString("Role", "Insurance Agent");
+                    HttpContext.Session.SetString(Role, "Insurance Agent");
                     HttpContext.Session.SetString(UserId, foundUser.Id.ToString());
                     Agent agent = _agentContext.Agents.First(p => p.UserId == foundUser.Id);
                     HttpContext.Session.SetString(Name, agent.Name);
@@ -225,7 +245,7 @@ namespace InsuranceApplication.Controllers
 
         public ActionResult UserDashBoard()
         {
-            if (HttpContext.Session.GetString("Username") != null)
+            if (HttpContext.Session.GetString(Username) != null)
             {
                 return View();
             }
@@ -319,14 +339,14 @@ namespace InsuranceApplication.Controllers
             _agentContext.SaveChanges();
 
             HttpContext.Session.SetString(Name, foundAgent.Name);
-            HttpContext.Session.SetString("Username", foundUser.Username);
+            HttpContext.Session.SetString(Username, foundUser.Username);
 
             return RedirectToAction("MyDetails");
         }
 
         public ActionResult LogOut()
         {
-            HttpContext.Session.SetString("Username", "");
+            HttpContext.Session.SetString(Username, "");
             HttpContext.Session.SetString(SecurityQuestionNum, "0");
             HttpContext.Session.SetString(SecurityQuestionsAttempted, "");
             return RedirectToAction("Login");
