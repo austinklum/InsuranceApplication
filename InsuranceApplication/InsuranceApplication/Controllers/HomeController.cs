@@ -52,6 +52,7 @@ namespace InsuranceApplication.Controllers
         public static string IncorrectPasswordString = "IncorrectPasswordString";
         public static string Role = "Role";
         public static string IncludeProcessed = "IncludeProcessed";
+        public static string HolderName = "HolderName";
 
 
         public HomeController(ILogger<HomeController> logger, UserContext context, AgentContext agentContext)

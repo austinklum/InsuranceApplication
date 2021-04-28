@@ -71,11 +71,11 @@ namespace InsuranceApplication.Views.PTransactions
 
             if (!string.IsNullOrEmpty(holderName))
             {
-                HttpContext.Session.SetString(HomeController.Name, holderName);
+                HttpContext.Session.SetString(HomeController.HolderName, holderName);
             }
             else
             {
-                HttpContext.Session.SetString(HomeController.Name, "");
+                HttpContext.Session.SetString(HomeController.HolderName, "");
             }
 
             HttpContext.Session.SetString(HomeController.IncludeProcessed, includeProcessed.ToString());
@@ -168,7 +168,7 @@ namespace InsuranceApplication.Views.PTransactions
             SendResponse( subtransaction);
 
             string holderName = "";
-            if (policyHolder.Name == HttpContext.Session.GetString(HomeController.Name))
+            if (policyHolder.Name == HttpContext.Session.GetString(HomeController.HolderName))
             {
                 holderName = policyHolder.Name;
             }

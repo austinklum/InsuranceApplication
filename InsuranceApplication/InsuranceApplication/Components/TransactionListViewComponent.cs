@@ -1,4 +1,5 @@
-﻿using InsuranceApplication.Data;
+﻿using InsuranceApplication.Controllers;
+using InsuranceApplication.Data;
 using InsuranceApplication.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -47,9 +48,9 @@ namespace InsuranceApplication.Components
                 transaction.HolderName = holders.FirstOrDefault(h => h.Id == transaction.HolderId).Name;
             }
             
-            HttpContext.Session.SetString("holderName", "");
+            HttpContext.Session.SetString(HomeController.HolderName, "");
 
-            HttpContext.Session.SetString("includeProcessed", false.ToString());
+            HttpContext.Session.SetString(HomeController.IncludeProcessed, false.ToString());
             PTransactionsByPolicyHolderViewModel TransactionByPH = new PTransactionsByPolicyHolderViewModel
             {
                 Holders = new SelectList(await holderNames.ToListAsync()),
