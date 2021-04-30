@@ -43,16 +43,16 @@ namespace InsuranceApplication.Controllers
                                                                    "What was the make of your first car?",
                                                                    "In which year, you first flew in an airplane?"};
 
-        public const string SecurityQuestionNum = "SecurityQuestionNum";
-        public const string SecurityQuestionText = "SecurityQuestionText";
-        public const string SecurityQuestionsAttempted = "SecurityQuestionsAttempted";
-        public static string UserId = "UserId";
-        public static string Username = "Username";
-        public static string Name = "Name";
-        public static string IncorrectPasswordString = "IncorrectPasswordString";
-        public static string Role = "Role";
-        public static string IncludeProcessed = "IncludeProcessed";
-        public static string HolderName = "HolderName";
+        public const string SecurityQuestionNum = "InsuranceSecurityQuestionNum";
+        public const string SecurityQuestionText = "InsuranceSecurityQuestionText";
+        public const string SecurityQuestionsAttempted = "InsuranceSecurityQuestionsAttempted";
+        public static string UserId = "InsuranceUserId";
+        public static string Username = "InsuranceUsername";
+        public static string Name = "InsuranceName";
+        public static string IncorrectPasswordString = "InsuranceIncorrectPasswordString";
+        public static string Role = "InsuranceRole";
+        public static string IncludeProcessed = "InsuranceIncludeProcessed";
+        public static string HolderName = "InsuranceHolderName";
 
 
         public HomeController(ILogger<HomeController> logger, UserContext context, AgentContext agentContext)
