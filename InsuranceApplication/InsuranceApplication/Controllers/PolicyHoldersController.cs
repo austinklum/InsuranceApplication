@@ -131,6 +131,7 @@ namespace InsuranceApplication.Views.PolicyHolders
             PolicyHolder policyHolder = vm.CurrentPolicyHolder;
             policyHolder.AmountPaid = 0;
             Policy policy = _policyContext.Policies.First(p => p.PolicyCode == policyHolder.PolicyCode);
+            policyHolder.PolicyId = policy.Id;
             DateTime currentYear = new DateTime(DateTime.Now.Year, 1, 1);
             if (vm.CurrentPolicyHolder.DateOfBirth >= currentYear)
             {
@@ -158,6 +159,14 @@ namespace InsuranceApplication.Views.PolicyHolders
             await _policyHolderContext.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
 
+        }
+
+        public IActionResult Delete(int id)
+        {
+            PolicyHolder ph = _policyHolderContext.PolicyHolders.First(p => p.Id == id);
+            _policyHolderContext.PolicyHolders.Remove(ph);
+            _policyHolderContext.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
 
         private IEnumerable<SelectListItem> GetSelectListItems(IEnumerable<string> elements)

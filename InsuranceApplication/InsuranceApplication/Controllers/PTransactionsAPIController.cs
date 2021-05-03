@@ -88,6 +88,7 @@ namespace InsuranceApplication.Controllers
                 return NotFound();
             }
             pTransaction.HolderId = ph.Id;
+            //pTransaction.Id = _transactionContext.PTransactions.
             _transactionContext.PTransactions.Add(pTransaction);
             await _transactionContext.SaveChangesAsync();
 

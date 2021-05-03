@@ -39,9 +39,9 @@
                 <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
                 <td>@Html.DisplayFor(modelItem => item.AmountPaid)</td>
                 <td>@Html.DisplayFor(modelItem => item.AmountRemaining)</td>
-                @*<td>
-                        <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-                    </td>*@
+                <td>
+                    <a asp-action="Delete" class="btn btn-secondary btn-block" asp-route-id="@item.Id">Delete</a>
+                </td>
             </tr>
         }
     </tbody>
