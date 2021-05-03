@@ -76,15 +76,17 @@ namespace InsuranceApplication.Views.PolicyHolders
         {
             PolicyHolder policyHolder = vm.CurrentPolicyHolder;
             policyHolder.AmountPaid = 0;
-            Policy policy = _policyContext.Policies.First(p => p.Id == policyHolder.PolicyId);
+            Policy policy = _policyContext.Policies.First(p => p.PolicyCode == policyHolder.PolicyCode);
             policyHolder.AmountRemaining = policy.MaxCoverage;
-            if (ModelState.IsValid)
+            if(string.IsNullOrEmpty(vm.CurrentPolicyHolder.Name))
             {
-                _policyHolderContext.Add(policyHolder);
-                await _policyHolderContext.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                return View(vm);
             }
-            return View(policyHolder);
+            _policyHolderContext.Add(policyHolder);
+            await _policyHolderContext.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+
         }
 
         private IEnumerable<SelectListItem> GetSelectListItems(IEnumerable<string> elements)
@@ -94,7 +96,7 @@ namespace InsuranceApplication.Views.PolicyHolders
             {
                 selectList.Add(new SelectListItem
                 {
-                    Value = i.ToString(),
+                    Value = elements.ElementAt(i),
                     Text = elements.ElementAt(i)
                 }); ;
             }
