@@ -60,5 +60,46 @@ namespace InsuranceApplication.Views.PolicyHolders
         {
             return _policyHolderContext.PolicyHolders.Any(e => e.Id == id);
         }
+
+        // GET: Physicians/Create
+        public IActionResult Create()
+        {
+            CreatePolicyHolderViewModel vm = new CreatePolicyHolderViewModel();
+            vm.CurrentPolicyHolder = new PolicyHolder();
+            var codes = from p in _policyContext.Policies select p.PolicyCode;
+            vm.Policies = GetSelectListItems(codes);
+            return View(vm);
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> Create(CreatePolicyHolderViewModel vm)
+        {
+            PolicyHolder policyHolder = vm.CurrentPolicyHolder;
+            policyHolder.AmountPaid = 0;
+            Policy policy = _policyContext.Policies.First(p => p.Id == policyHolder.PolicyId);
+            policyHolder.AmountRemaining = policy.MaxCoverage;
+            if (ModelState.IsValid)
+            {
+                _policyHolderContext.Add(policyHolder);
+                await _policyHolderContext.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(policyHolder);
+        }
+
+        private IEnumerable<SelectListItem> GetSelectListItems(IEnumerable<string> elements)
+        {
+            var selectList = new List<SelectListItem>();
+            for (int i = 0; i < elements.Count(); i++)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value = i.ToString(),
+                    Text = elements.ElementAt(i)
+                }); ;
+            }
+
+            return selectList;
+        }
     }
 }
