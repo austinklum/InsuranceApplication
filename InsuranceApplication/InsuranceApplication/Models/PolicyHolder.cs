@@ -25,8 +25,10 @@ namespace InsuranceApplication.Models
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}")]
         public DateTime EndDate { get; set; }
         [DisplayName("Amount Paid")]
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double AmountPaid { get; set; }
         [DisplayName("Amount Remaining")]
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double AmountRemaining { get; set; }
         public string Pronouns { get; set; }
         [NotMapped]

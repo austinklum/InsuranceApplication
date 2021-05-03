@@ -21,9 +21,11 @@ namespace InsuranceApplication.Models
         public string HolderName { get; set; }
         [NotMapped]
         [DisplayName("Total Cost of Transaction")]
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double TotalCost { get; set; }
         [NotMapped]
         [DisplayName("Total Cost without Insurance")]
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double TotalCostNoIns { get; set; }
         [NotMapped]
         [DisplayName("Status")]
