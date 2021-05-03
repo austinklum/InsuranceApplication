@@ -131,6 +131,28 @@ namespace InsuranceApplication.Views.PolicyHolders
             PolicyHolder policyHolder = vm.CurrentPolicyHolder;
             policyHolder.AmountPaid = 0;
             Policy policy = _policyContext.Policies.First(p => p.PolicyCode == policyHolder.PolicyCode);
+            DateTime currentYear = new DateTime(DateTime.Now.Year, 1, 1);
+            if (vm.CurrentPolicyHolder.DateOfBirth >= currentYear)
+            {
+                HttpContext.Session.SetString(HomeController.CreatePolicyHolderDOBValidation, "Policyholder cannot be born in this year");
+                return View(vm);
+            }
+            double years = (DateTime.Now - vm.CurrentPolicyHolder.DateOfBirth).TotalDays / 365.25;
+            if (years > policy.AgeLimit)
+            {
+                HttpContext.Session.SetString(HomeController.CreatePolicyHolderDOBValidation, "Policyholder is too old for this policy");
+                return View(vm);
+            }
+            if (vm.CurrentPolicyHolder.StartDate < DateTime.Now)
+            {
+                HttpContext.Session.SetString(HomeController.CreatePolicyHolderStartValidation, "Start date cannot be before today");
+                return View(vm);
+            }
+            if (vm.CurrentPolicyHolder.StartDate > vm.CurrentPolicyHolder.EndDate)
+            {
+                HttpContext.Session.SetString(HomeController.CreatePolicyHolderEndValidation, "End date cannot be before start date");
+                return View(vm);
+            }
             policyHolder.AmountRemaining = policy.MaxCoverage;
             _policyHolderContext.Add(policyHolder);
             await _policyHolderContext.SaveChangesAsync();
