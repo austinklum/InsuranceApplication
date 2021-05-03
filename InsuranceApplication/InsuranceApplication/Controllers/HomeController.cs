@@ -53,6 +53,13 @@ namespace InsuranceApplication.Controllers
         public static string Role = "InsuranceRole";
         public static string IncludeProcessed = "InsuranceIncludeProcessed";
         public static string HolderName = "InsuranceHolderName";
+        public static string CreatePolicyHolderNameValidation = "InsuranceCreatePolicyHolderNameValidation";
+        public static string CreatePolicyHolderAddressValidation = "InsuranceCreatePolicyHolderAddressValidation";
+        public static string CreatePolicyHolderPronounsValidation = "InsuranceCreatePolicyHolderPronounsValidation";
+        public static string CreatePolicyHolderPolicyCodeValidation = "InsuranceCreatePolicyHolderPolicyCodeValidation";
+        public static string CreatePolicyHolderDOBValidation = "InsuranceCreatePolicyHolderDOBValidation";
+        public static string CreatePolicyHolderStartValidation = "InsuranceCreatePolicyHolderStartValidation";
+        public static string CreatePolicyHolderEndValidation = "InsuranceCreatePolicyHolderEndValidation";
 
 
         public HomeController(ILogger<HomeController> logger, UserContext context, AgentContext agentContext)

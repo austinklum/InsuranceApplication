@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ namespace InsuranceApplication.Models
         public string CommercialName { get; set; }
         public string Type { get; set; }
         [DisplayName("Cost Per Dose")]
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double CostPer { get; set; }
     }
 }

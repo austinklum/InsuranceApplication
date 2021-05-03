@@ -14,25 +14,27 @@ namespace InsuranceApplication.Controllers
     [ApiController]
     public class PTransactionsAPIController : ControllerBase
     {
-        private readonly TransactionContext _context;
+        private readonly TransactionContext _transactionContext;
+        private readonly PolicyHolderContext _policyHolderContext;
 
-        public PTransactionsAPIController(TransactionContext context)
+        public PTransactionsAPIController(TransactionContext context, PolicyHolderContext policyHolderContext)
         {
-            _context = context;
+            _transactionContext = context;
+            _policyHolderContext = policyHolderContext;
         }
 
         // GET: api/PTransactionsAPI
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PTransaction>>> GetPTransactions()
         {
-            return await _context.PTransactions.ToListAsync();
+            return await _transactionContext.PTransactions.ToListAsync();
         }
 
         // GET: api/PTransactionsAPI/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PTransaction>> GetPTransaction(int id)
         {
-            var pTransaction = await _context.PTransactions.FindAsync(id);
+            var pTransaction = await _transactionContext.PTransactions.FindAsync(id);
 
             if (pTransaction == null)
             {
@@ -53,11 +55,11 @@ namespace InsuranceApplication.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(pTransaction).State = EntityState.Modified;
+            _transactionContext.Entry(pTransaction).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _transactionContext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -80,8 +82,15 @@ namespace InsuranceApplication.Controllers
         [HttpPost]
         public async Task<ActionResult<PTransaction>> PostPTransaction(PTransaction pTransaction)
         {
-            _context.PTransactions.Add(pTransaction);
-            await _context.SaveChangesAsync();
+            PolicyHolder ph = _policyHolderContext.PolicyHolders.FirstOrDefault(p => p.Name == pTransaction.HolderName);
+            if(ph == null)
+            {
+                return NotFound();
+            }
+            pTransaction.HolderId = ph.Id;
+            //pTransaction.Id = _transactionContext.PTransactions.
+            _transactionContext.PTransactions.Add(pTransaction);
+            await _transactionContext.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetPTransaction), new { id = pTransaction.Id }, pTransaction);
         }
@@ -90,21 +99,21 @@ namespace InsuranceApplication.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<PTransaction>> DeletePTransaction(int id)
         {
-            var pTransaction = await _context.PTransactions.FindAsync(id);
+            var pTransaction = await _transactionContext.PTransactions.FindAsync(id);
             if (pTransaction == null)
             {
                 return NotFound();
             }
 
-            _context.PTransactions.Remove(pTransaction);
-            await _context.SaveChangesAsync();
+            _transactionContext.PTransactions.Remove(pTransaction);
+            await _transactionContext.SaveChangesAsync();
 
             return pTransaction;
         }
 
         private bool PTransactionExists(int id)
         {
-            return _context.PTransactions.Any(e => e.Id == id);
+            return _transactionContext.PTransactions.Any(e => e.Id == id);
         }
     }
 }

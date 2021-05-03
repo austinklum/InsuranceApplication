@@ -17,10 +17,12 @@ namespace InsuranceApplication.Models
         [DisplayName("Age Limit")]
         public int AgeLimit { get; set; }
         [DisplayName("Maximum Coverage")]
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double MaxCoverage { get; set; }
         [DisplayName("Percent Coverage")]
         [DisplayFormat(DataFormatString = "{0:P2}")]
         public double PercentCoverage { get; set; }
+        [DisplayFormat(DataFormatString = "{0:C2}")]
         public double Premium { get; set; }
 
         [NotMapped]
